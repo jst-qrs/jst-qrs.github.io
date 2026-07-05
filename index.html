@@ -1,0 +1,2317 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Cpu, 
+  Brain, 
+  Layers, 
+  Bot, 
+  AppWindow, 
+  Compass, 
+  Terminal, 
+  HelpCircle, 
+  ArrowRight, 
+  RefreshCw, 
+  CheckCircle, 
+  XCircle, 
+  Search, 
+  BookOpen, 
+  Code, 
+  Database, 
+  ShieldAlert, 
+  Zap, 
+  Layers2, 
+  Sparkles, 
+  FileText,
+  Info,
+  Clock,
+  DollarSign,
+  Users,
+  Sliders,
+  Check,
+  Smartphone,
+  CloudLightning,
+  Activity,
+  Lock,
+  ChevronRight,
+  Eye,
+  SlidersHorizontal,
+  Workflow,
+  Wrench,
+  Copy,
+  FolderOpen,
+  Settings,
+  Flame,
+  Layout,
+  ExternalLink
+} from 'lucide-react';
+
+// Define the core data for the Gen AI Architecture Layers
+const LAYERS_DATA = [
+  {
+    id: 'app',
+    name: '5. Application Layer',
+    subtitle: 'The Frontend & User Touchpoints',
+    color: 'from-amber-500 to-orange-600',
+    textColor: 'text-amber-400',
+    borderColor: 'border-amber-500/30',
+    bgLight: 'bg-amber-950/20',
+    icon: AppWindow,
+    summary: 'The customer-facing or internal frontends that package AI capabilities into clean user interfaces.',
+    keyConcepts: [
+      {
+        title: 'Enterprise Assistants',
+        desc: 'Context-aware portals or chatbots pulling strictly from internal documentation to handle employee requests, HR, or tier-1 customer support.'
+      },
+      {
+        title: 'Productivity Ecosystems',
+        desc: 'Inline assistants (like Google Workspace with Gemini, Github Copilot) that provide real-time writing, coding, or summarizing help integrated seamlessly into regular workflows.'
+      },
+      {
+        title: 'Multi-Agent Orchestration',
+        desc: 'Complex user experiences powered by several specialized back-end agents working in unison (e.g., a Travel App using a booking agent, a budget agent, and an itinerary planner agent).'
+      }
+    ],
+    examTakeaway: 'The application layer provides the structure and context for agents and models to operate. It defines the constraints, rules, and UI, while agents provide the autonomous brainpower to handle actual tasks.'
+  },
+  {
+    id: 'agent',
+    name: '4. Agent Layer',
+    subtitle: 'Autonomous Reasoning & Action Execution',
+    color: 'from-fuchsia-500 to-pink-600',
+    textColor: 'text-fuchsia-400',
+    borderColor: 'border-fuchsia-500/30',
+    bgLight: 'bg-fuchsia-950/20',
+    icon: Bot,
+    summary: 'Software entities that independently achieve a goal using models for thinking, combined with external tools for executing actions.',
+    keyConcepts: [
+      {
+        title: 'The Reasoning Loop',
+        desc: 'A continuous cycle: Observe (gather environment info) → Interpret (assess situation) → Plan (devise strategy) → Act (execute using tools like APIs/databases).'
+      },
+      {
+        title: 'Tool-Calling & Extensions',
+        desc: 'Moving beyond text generation. Agents call structured APIs, trigger database modifications, or perform Google Search grounding to retrieve real-time facts.'
+      },
+      {
+        title: 'Infinite Loop Guardrails',
+        desc: 'Critical production safeguards! Systems use step limits (5-10 loops max), strict error handling in tools, and secondary prompt "meta-reviewers" to prevent agents from looping indefinitely.'
+      },
+      {
+        title: 'Playbooks & Flows',
+        desc: 'Structuring complex agent behavior. Breaking major end-goals into discrete sub-flows or playbooks so the agent does not lose focus or enter terminal confusion.'
+      }
+    ],
+    examTakeaway: 'Unlike raw LLMs (which process text in a single pass), agents are cyclical and action-oriented. Understanding how to structure their instructions, feed them tools, and protect them from infinite loops is a primary certification focus.'
+  },
+  {
+    id: 'platform',
+    name: '3. Platform Layer (Vertex AI)',
+    subtitle: 'The "Glue" & Enterprise Lifecycle MLOps',
+    color: 'from-emerald-500 to-teal-600',
+    textColor: 'text-emerald-400',
+    borderColor: 'border-emerald-500/30',
+    bgLight: 'bg-emerald-950/20',
+    icon: Layers,
+    summary: 'The orchestration and centralized repository level that manages data, models, and agents safely in an enterprise environment.',
+    keyConcepts: [
+      {
+        title: 'Vertex AI Agent Builder',
+        desc: 'A low-code/no-code framework that automates the agent backend, vectorization for RAG, and prompt anchoring, letting teams craft custom agents with natural language.'
+      },
+      {
+        title: 'Vertex AI Model Garden',
+        desc: 'A unified enterprise repository supporting Google first-party foundation models (Gemini), curated third-party models (Claude, Llama), and open-source models.'
+      },
+      {
+        title: 'MLOps Tools & Pipelines',
+        desc: 'Comprehensive components to scale ML safely: feature engineering, metadata tracking, version control, model deployment, and real-time drift/skew monitoring.'
+      },
+      {
+        title: 'Grounding & Data Stores',
+        desc: 'The link to enterprise sources. Data stores ingest unstructured files (PDFs, Wikis) or structured tables, converting them to vectorized forms for RAG automatically.'
+      }
+    ],
+    examTakeaway: 'The platform layer abstracts complex developer-coded scripts into production-ready corporate solutions, securing models with enterprise governance and automating MLOps pipelines.'
+  },
+  {
+    id: 'model',
+    name: '2. Model Layer',
+    subtitle: 'Foundation Brains & Tuning Techniques',
+    color: 'from-violet-500 to-indigo-600',
+    textColor: 'text-indigo-400',
+    borderColor: 'border-indigo-500/30',
+    bgLight: 'bg-indigo-950/20',
+    icon: Brain,
+    summary: 'Sophisticated mathematical structures trained on colossal datasets, acting as the general intelligence core.',
+    keyConcepts: [
+      {
+        title: 'The Gemini Family Hierarchy',
+        desc: 'Gemini Ultra (highly complex reasoning, multimodality), Gemini Pro (highly versatile, standard for most enterprise tasks), and Gemini Flash (optimized for extreme speed and cost-efficiency).'
+      },
+      {
+        title: 'RAG vs. Fine-Tuning',
+        desc: 'RAG grounds a model with fresh external data (best for rapidly changing facts). Fine-Tuning alters the model\'s weights to master custom styles, structures, or niche syntax.'
+      },
+      {
+        title: 'Context Window Leverage',
+        desc: 'The total capacity of tokens a model handles in one prompt (e.g., Gemini\'s multi-million token window), allowing complete analysis of huge codebases, videos, or legal books.'
+      },
+      {
+        title: 'AutoML & Custom Models',
+        desc: 'Using automated pipelines inside the platform to build highly specialized models tailored to proprietary data formats (like Cymbal Aerospace\'s 3D CAD interpreter).'
+      }
+    ],
+    examTakeaway: 'Foundation models are pre-trained generalists. Choose the tier (Flash vs Pro vs Ultra) based on your latency vs accuracy requirements, and combine RAG + Fine-Tuning strategically.'
+  },
+  {
+    id: 'infra',
+    name: '1. Infrastructure Layer',
+    subtitle: 'High-Performance Cloud & Compute Engines',
+    color: 'from-cyan-500 to-blue-600',
+    textColor: 'text-cyan-400',
+    borderColor: 'border-cyan-500/30',
+    bgLight: 'bg-cyan-950/20',
+    icon: Cpu,
+    summary: 'The underlying hardware accelerators, physical storage, and low-latency network pipelines driving massive neural network execution.',
+    keyConcepts: [
+      {
+        title: 'Hardware Accelerators (TPUs vs. GPUs)',
+        desc: 'TPUs (Tensor Processing Units) are Google\'s custom ASICs optimized specifically for matrix math in deep learning. GPUs are Nvidia\'s versatile hardware accelerators.'
+      },
+      {
+        title: 'High-Performance Storage & Mesh Networks',
+        desc: 'Crucial for transferring massive model weights instantly during training and distributed execution, reducing high bottlenecks and training failure rates.'
+      },
+      {
+        title: 'Fully Managed Compute Scaling',
+        desc: 'Managed training infrastructure that dynamically scales hardware resources across the model development lifecycle without needing manual server administration.'
+      }
+    ],
+    examTakeaway: 'When not using a fully managed platform like Vertex AI, leaders must plan infrastructure requirements across: data collection, model training, deployment, refinement, and monitoring.'
+  }
+];
+
+// Interactive Scenario questions for the Certification practice
+const PRACTICE_SCENARIOS = [
+  {
+    question: "Your maritime shipping company wants to build an autonomous agent. The agent must reference highly dynamic, hourly-updated ship schedules, and it must consistently output reports utilizing a strict, proprietary corporate formatting template. What architecture should you choose?",
+    options: [
+      { label: "A) Fine-Tuning Only", value: "A", detail: "Fails because you cannot retrain a model every 60 minutes for live port schedules without bankrupting the company." },
+      { label: "B) RAG Only", value: "B", detail: "Fails to guarantee strict formatting; base foundation models frequently drift from complex layouts in long outputs." },
+      { label: "C) Hybrid: RAG + Fine-Tuning", value: "C", detail: "CORRECT! RAG provides the hourly-updated shipping data (preventing hallucinations), while Fine-Tuning locks in the proprietary style and template syntax." },
+      { label: "D) Long-Context Prompting Only", value: "D", detail: "Fails due to cost and latency; stuffing thousand-page shipping rulebooks into every API request creates massive token overhead." }
+    ],
+    answer: "C"
+  },
+  {
+    question: "You are designing an IT Support Agent in Vertex AI Agent Builder. It needs to answer employee questions using an internal wiki and reset passwords securely through an enterprise IAM API. How should you design this?",
+    options: [
+      { label: "A) Configure both the IT wiki and the password reset API as vectorized Data Stores.", value: "A", detail: "Fails because APIs cannot be vectorized as passive data; they require action parameters." },
+      { label: "B) Put the IT wiki into a grounded Data Store, and configure the IAM API as a Tool / Extension.", value: "B", detail: "CORRECT! The Data Store handles the unstructured text lookups (RAG), and the Extension Tool lets the Agent perform actual actions (reset password)." },
+      { label: "C) Fine-tune Gemini on both the IT wiki files and the raw code of the password reset API.", value: "C", detail: "Fails. Fine-tuning doesn't give a model the active execution power to trigger real-world systems." },
+      { label: "D) Rely entirely on public Google Search grounding for both.", value: "D", detail: "Fails. Google Search won't have your internal corporate wiki or your private password reset API keys." }
+    ],
+    answer: "B"
+  },
+  {
+    question: "An enterprise developer is deploying an AI workflow agent designed to convert customer complaints into structured JSON schemas for database storage. The agent keeps generating slightly invalid JSON configurations under load. Which parameter adjustments and prompting adjustments are best?",
+    options: [
+      { label: "A) Increase Temperature to 1.0 and use generic Zero-shot prompting.", value: "A", detail: "Fails. Higher temperature introduces more randomness and token variance, compounding formatting failure." },
+      { label: "B) Set Temperature to 0.0 (maximizing determinism), apply Few-Shot schema examples, and enforce strict JSON System Instructions.", value: "B", detail: "CORRECT! Lower temperature forces deterministic token predictions, and Few-shot examples anchor the formatting schema." },
+      { label: "C) Fine-tune the foundation model's weights using generic public customer service records.", value: "C", detail: "Fails. Fine-tuning is expensive and over-engineered for standard JSON output conformity; proper parameters and few-shot examples solve this instantly." },
+      { label: "D) Scale the agent's memory mesh inside localized Edge hardware nodes using LiteRT.", value: "D", detail: "Fails. Hardware routing won't fix the underlying soft mathematical random variance in raw text model parsing." }
+    ],
+    answer: "B"
+  },
+  {
+    question: "You want to run a lightweight model directly inside an aerial patrol drone for obstacle recognition. The drone operates in remote valleys with zero cell coverage, and navigation processing needs to take less than 15 milliseconds. What approach is optimal?",
+    options: [
+      { label: "A) Cloud deployment using Gemini 1.5 Pro via Vertex AI endpoints.", value: "A", detail: "Fails due to lack of network connectivity and high round-trip latency." },
+      { label: "B) Edge deployment using LiteRT (Lite Runtime) and a compact Gemini Nano model locally.", value: "B", detail: "CORRECT! Edge computing meets both the offline requirement and the ultra-low latency threshold." },
+      { label: "C) Periodic RAG grounding using cached Google Search records.", value: "C", detail: "Fails because the drone doesn't have an active internet link to query outside cache databases." },
+      { label: "D) Deploying a cluster of physical GPUs inside the drone body.", value: "D", detail: "Fails. Heavy GPU cards are too power-hungry and heavy for standard aerial drone payloads." }
+    ],
+    answer: "B"
+  }
+];
+
+// Steps for the Agent Reasoning Loop Simulator
+const SIMULATOR_STEPS = [
+  {
+    name: 'Observe',
+    icon: Compass,
+    actionText: 'Analyzing User Query',
+    details: 'The agent inspects the environment and incoming goal. It parses parameters and initializes the system memory.'
+  },
+  {
+    name: 'Interpret',
+    icon: Brain,
+    actionText: 'Reasoning & Checking Data Store',
+    details: 'Checks the semantic context. Triggers a query to the integrated Vertex AI Data Store (RAG lookup) to retrieve fresh policy files.'
+  },
+  {
+    name: 'Plan',
+    icon: Terminal,
+    actionText: 'Determining Next Best Action',
+    details: 'Decides if standard text answer is enough or if a physical system Tool is required. Plans the schema payload to call the IAM API.'
+  },
+  {
+    name: 'Act',
+    icon: Bot,
+    actionText: 'Executing API Tool Call',
+    details: 'Triggers the secure API connection (Tool call). Once payload executes successfully, it synthesizes the final output.'
+  }
+];
+
+// Edge Scenarios data
+const EDGE_SCENARIOS = [
+  {
+    id: 1,
+    title: "Surgical Medical Feedback",
+    desc: "A surgical device analyzing vital parameters and real-time imaging to provide instant critical feedback to surgeons inside the OR.",
+    correct: "edge",
+    rationale: "Real-time, zero-latency safety feedback. Delay waiting for cloud loops is a medical hazard."
+  },
+  {
+    id: 2,
+    title: "Smart City Traffic Pattern Analysis",
+    desc: "A city-wide layout consolidator collecting data from 500,000 sensors to compute predictive structural traffic flow bottlenecks.",
+    correct: "cloud",
+    rationale: "Requires massive shared processing arrays, historical analysis, and elastic cloud consolidation."
+  },
+  {
+    id: 3,
+    title: "Autonomous Delivery Drone",
+    desc: "A drone navigating dynamic forests or mountain slopes with zero access to cellular data links.",
+    correct: "edge",
+    rationale: "Extreme offline dependency combined with instant physical avoidance decisions."
+  },
+  {
+    id: 4,
+    title: "E-Commerce Customer Chatbot",
+    desc: "A customer service portal servicing millions of concurrent global requests for return slips and policy lookups.",
+    correct: "cloud",
+    rationale: "Requires scalable cloud capacity, concurrent request queues, and global security coverage."
+  }
+];
+
+// Prompt Engineering Canvas Data
+const PROMPT_ENGINEERING_PLAYBOOK = {
+  zero_shot: {
+    title: "Zero-Shot Prompting",
+    tag: "Simple Instruction",
+    concept: "Giving the model a task directly without providing any input-output examples. Relies strictly on the model's pre-trained general knowledge.",
+    template: `SYSTEM: You are a financial classification agent.
+USER: Classify the following transactional event into a standard industry code:
+"Purchased 15 high-speed server racks from local technology hardware providers."`
+  },
+  few_shot: {
+    title: "Few-Shot Prompting",
+    tag: "In-Context Learning",
+    concept: "Providing structured input-output demonstration examples inside the prompt to hard-align style, format, constraints, and vocabulary parameters.",
+    template: `SYSTEM: Classify transactional events into [Hardware, SaaS, Marketing, Travel].
+EXAMPLES:
+- User: Bought flight ticket to San Francisco airport.
+- Output: Travel
+- User: Renewed team license keys for Google Workspace.
+- Output: SaaS
+- User: Purchased 15 high-speed server racks.
+- Output: Hardware`
+  },
+  chain_of_thought: {
+    title: "Chain of Thought (CoT)",
+    tag: "Step-by-Step Reasoning",
+    concept: "Enforcing structured linear logical sequences inside the model reasoning phase ('Let's think step-by-step') before computing the final answer token.",
+    template: `SYSTEM: Solve complex enterprise math workflows.
+USER: Cymbal Cargo has 12 cargo vessels. 3 are in repairs. 2 empty ones are traveling to Europe. The rest are fully loaded with 50 containers each. How many containers are in transit?
+LEADERSHIP PROMPT GUIDE: Solve by planning step-by-step logic first, then output the final answer.`
+  },
+  react_prompt: {
+    title: "ReAct Prompting (Reason + Act)",
+    tag: "Dynamic Agent Loop",
+    concept: "Alternating explicit analytical thought phases ('Thought') with active system execution commands ('Action') and tool sensory gathering ('Observation').",
+    template: `Thought: User wants ship status. I need to query the database.
+Action: query_port_db(ship_id="CYM-401")
+Observation: Ship is currently docked in London port.
+Thought: The ship is docked. I can now compile the report.
+Action: output_response("Your cargo is safe at London port.")`
+  }
+};
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('architecture'); // 'architecture' | 'simulator' | 'agent_fundamentals' | 'prompt_implementation' | 'tradeoffs' | 'lifecycle' | 'quiz'
+  const [selectedLayerId, setSelectedLayerId] = useState('agent');
+  const [activeConceptIndex, setActiveConceptIndex] = useState(0);
+  
+  // Quiz states
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizSubmitted, setQuizSubmitted] = useState({});
+  const [showExplanation, setShowExplanation] = useState({});
+  
+  // Simulator states
+  const [simStep, setSimStep] = useState(0);
+  const [simRunning, setSimRunning] = useState(false);
+  const [simLogs, setSimLogs] = useState([]);
+  const [loopCount, setLoopCount] = useState(1);
+  const [agentGoal, setAgentGoal] = useState('reset-password'); // 'reset-password' | 'get-flight'
+  
+  // Lifecycle Sub-States
+  const [edgeScore, setEdgeScore] = useState({});
+  const [projectApproach, setProjectApproach] = useState('agent'); // 'prebuilt' | 'agent' | 'custom_model'
+  const [scNeeds, setScNeeds] = useState({
+    scale: 2, 
+    customization: 2, 
+    latency: 2, 
+    connectivity: 2 
+  });
+  const [activeMaintPillar, setActiveMaintPillar] = useState(0);
+
+  // Agent Engineering Sub-States
+  const [tempValue, setTempValue] = useState(0.2);
+  const [topPValue, setTopPValue] = useState(0.8);
+  const [activePromptTech, setActivePromptTech] = useState('react_prompt');
+  const [activeReasonPillar, setActiveReasonPillar] = useState('cot');
+  const [selectedOrchestrationAgent, setSelectedOrchestrationAgent] = useState('booking');
+
+  // Hands-on Implementation states
+  const [implFramework, setImplFramework] = useState('cot'); // 'cot' | 'react'
+  const [implPlatform, setImplPlatform] = useState('code'); // 'code' | 'console'
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
+  // Selected layer object
+  const selectedLayer = LAYERS_DATA.find(l => l.id === selectedLayerId) || LAYERS_DATA[1];
+
+  // Simulator Engine
+  useEffect(() => {
+    let interval;
+    if (simRunning) {
+      interval = setInterval(() => {
+        setSimStep((prev) => {
+          const nextStep = (prev + 1) % 4;
+          
+          // Generate realistic agent logs based on active step
+          let newLog = '';
+          if (nextStep === 0) {
+            setLoopCount(c => c + 1);
+            if (loopCount >= 2 && agentGoal === 'reset-password') {
+              setSimRunning(false);
+              newLog = `🛑 [Guardrail Monitor] Goal accomplished! Stopping agent loop securely. Outputting final result to user.`;
+              setSimLogs(prevLogs => [...prevLogs, newLog]);
+              return 3; 
+            }
+            newLog = `🔄 [Observe] Agent observing step status. Loop counter: ${loopCount + 1}`;
+          } else if (nextStep === 1) {
+            newLog = agentGoal === 'reset-password'
+              ? `🔍 [Interpret] Query: "Reset password". Retrieving standard IAM authentication protocols from RAG Data Store... Found document: "Sec-IAM-v3.pdf".`
+              : `🔍 [Interpret] Query: "Find cheapest shipping schedule". Retrieving dynamic logistics database... Found match: "Port_Schedule_May_2026".`;
+          } else if (nextStep === 2) {
+            newLog = agentGoal === 'reset-password'
+              ? `📋 [Plan] Decided: Custom code execution required. Step 1: Verify employee ID. Step 2: Trigger secure token reset call to 'api.iam.internal/reset'.`
+              : `📋 [Plan] Decided: Database match found. Plan: Compute local routing costs, format output using the corporate shipping layout.`;
+          } else if (nextStep === 3) {
+            newLog = agentGoal === 'reset-password'
+              ? `⚙️ [Act] Executing IAM tool payload: { employeeId: "EMP-4992", tokenType: "Temporary" }. Status: 200 OK. Password reset link generated!`
+              : `⚙️ [Act] Formatting report to schema standard. Output created under 400ms. Status: Completed.`;
+          }
+
+          setSimLogs(prevLogs => [...prevLogs, newLog]);
+          return nextStep;
+        });
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [simRunning, simStep, agentGoal, loopCount]);
+
+  const startSimulator = () => {
+    setSimLogs([`🚀 [System] Starting autonomous AI agent. Goal: ${agentGoal === 'reset-password' ? 'Reset IT Security Password' : 'Fetch live cargo schedule & format report'}`]);
+    setSimStep(0);
+    setLoopCount(1);
+    setSimRunning(true);
+  };
+
+  const stopSimulator = () => {
+    setSimRunning(false);
+    setSimLogs(prev => [...prev, `🛑 [System] Simulator paused by user.`]);
+  };
+
+  const resetSimulator = () => {
+    setSimRunning(false);
+    setSimStep(0);
+    setLoopCount(1);
+    setSimLogs([]);
+  };
+
+  const handleQuizSelect = (questionIndex, val) => {
+    if (quizSubmitted[questionIndex]) return;
+    setQuizAnswers(prev => ({ ...prev, [questionIndex]: val }));
+  };
+
+  const submitQuizQuestion = (idx) => {
+    setQuizSubmitted(prev => ({ ...prev, [idx]: true }));
+    setShowExplanation(prev => ({ ...prev, [idx]: true }));
+  };
+
+  const handleEdgeMatch = (scenarioId, val) => {
+    setEdgeScore(prev => ({ ...prev, [scenarioId]: val }));
+  };
+
+  // Helper to trigger a brief "Copied!" feedback UI
+  const triggerCopyFeedback = (text) => {
+    document.execCommand('copy'); // safe browser wrapper
+    navigator.clipboard?.writeText(text);
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 2000);
+  };
+
+  // Derived recommendation logic from needs slider
+  const getRecommendation = () => {
+    const { scale, customization, latency, connectivity } = scNeeds;
+    
+    // Check edge trigger first
+    if (connectivity === 1 || latency === 3) {
+      return {
+        title: "Edge AI Deployment Model",
+        framework: "LiteRT & Gemini Nano",
+        desc: "Because you need zero latency or require offline operation, your models must run on-device. Google LiteRT abstracts the network and optimizes Gemini Nano directly within the hardware ASIC, preserving battery and guaranteeing uptime without cloud loops.",
+        class: "border-cyan-500/30 bg-cyan-950/25 text-cyan-200"
+      };
+    }
+    
+    if (customization === 3 && scale === 3) {
+      return {
+        title: "Fully Customized MLOps Architecture",
+        framework: "Vertex AI Training + Custom Model Garden Endpoint",
+        desc: "With enterprise scale and deep custom domain requirements, your strategy demands building on Vertex AI's infrastructure layer. You'll ingest custom structured metadata via AutoML or build custom weights, deploy endpoints securely, and track metadata through MLOps pipelines.",
+        class: "border-fuchsia-500/30 bg-fuchsia-950/25 text-fuchsia-200"
+      };
+    }
+
+    if (customization === 2 || scale >= 2) {
+      return {
+        title: "Grounded Enterprise AI Agent",
+        framework: "Vertex AI Agent Builder + RAG Data Stores",
+        desc: "Your requirements indicate a robust, flexible setup. Using Vertex AI Agent Builder, you can link foundation Gemini models (like Flash or Pro) with structured enterprise data sources. This optimizes performance-to-cost without needing expensive model retraining.",
+        class: "border-emerald-500/30 bg-emerald-950/25 text-emerald-200"
+      };
+    }
+
+    return {
+      title: "Out-of-the-Box / SaaS Application integration",
+      framework: "Pre-Built Gen AI Applications (e.g., Workspace with Gemini)",
+      desc: "For small-scale use cases needing simple capabilities, building custom pipelines is overkill. Leverage pre-built tools to start extracting value in seconds.",
+      class: "border-amber-500/30 bg-amber-950/25 text-amber-200"
+    };
+  };
+
+  const currentRec = getRecommendation();
+
+  // Project approach static metrics mapping
+  const approachMetrics = {
+    prebuilt: {
+      time: "Seconds to Minutes",
+      cost: "Very Low (Subscription-based)",
+      people: "Business Users / Operational Staff",
+      focus: "Leverages standard Google Workspace or out-of-the-box Gemini applications. No developer footprint required.",
+      rolesNeeded: [
+        { role: "Business Lead", desc: "Defines functional alignment and tracks output usefulness." }
+      ]
+    },
+    agent: {
+      time: "Days to Weeks",
+      cost: "Medium (API token consumption & cloud storage)",
+      people: "Business SME + Software Developers",
+      focus: "Uses Vertex AI Agent Builder to assemble reasoning loops. Developers link existing tools/APIs via extensions; business users outline playbook prompts.",
+      rolesNeeded: [
+        { role: "Product Manager/SME", desc: "Outlines conversational playbooks, boundaries, and safety instructions." },
+        { role: "Backend Engineer", desc: "Connects Agent extensions to databases, IAM, or corporate APIs." }
+      ]
+    },
+    custom_model: {
+      time: "Months of Development",
+      cost: "High (GPU/TPU cluster training compute, massive storage)",
+      people: "Full AI Engineering & Data Practitioner Team",
+      focus: "Builds or deeply fine-tunes custom models inside Vertex AI. Requires raw datasets, pipeline staging, hyperparameter tuning, and constant maintenance.",
+      rolesNeeded: [
+        { role: "Data Architect", desc: "Ingests, sanitizes, and prepares high-quality training and validation datasets." },
+        { role: "AI Research Scientist", desc: "Monitors validation loss, fine-tunes hyperparameters, and manages custom embeddings." },
+        { role: "DevOps/MLOps Engineer", desc: "Deploys GPU servers, scales model inference nodes, and runs security container audits." }
+      ]
+    }
+  };
+
+  const activeApproach = approachMetrics[projectApproach];
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200 animate-fadeIn">
+      
+      {/* Header Banner */}
+      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-4 sm:px-6">
+        <div className="max-w-7xl mx-auto flex flex-col xl:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+              <Sparkles className="w-6 h-6 animate-pulse" />
+            </div>
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-300">
+                Gen AI Landscape Stack
+              </h1>
+              <p className="text-xs text-indigo-400 font-semibold tracking-wide">Enterprise Generative AI Leadership Interactive Suite</p>
+            </div>
+          </div>
+          
+          {/* Main Tabs Navigation */}
+          <nav className="flex flex-wrap bg-slate-950 p-1 rounded-lg border border-slate-800/80 w-full xl:w-auto gap-1">
+            <button 
+              onClick={() => setActiveTab('architecture')}
+              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${activeTab === 'architecture' ? 'bg-slate-800 text-indigo-300 shadow-sm border border-slate-700/50' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <Layers2 className="w-3.5 h-3.5" />
+              1. Visual Stack
+            </button>
+            <button 
+              onClick={() => setActiveTab('simulator')}
+              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${activeTab === 'simulator' ? 'bg-slate-800 text-indigo-300 shadow-sm border border-slate-700/50' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <Terminal className="w-3.5 h-3.5" />
+              2. Agent Simulator
+            </button>
+            <button 
+              onClick={() => setActiveTab('agent_fundamentals')}
+              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${activeTab === 'agent_fundamentals' ? 'bg-slate-800 text-indigo-300 shadow-sm border border-slate-700/50' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <Bot className="w-3.5 h-3.5 text-indigo-400" />
+              3. Agent Fundamentals
+            </button>
+            <button 
+              onClick={() => setActiveTab('prompt_implementation')}
+              className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${activeTab === 'prompt_implementation' ? 'bg-slate-800 text-emerald-400 shadow-sm border border-slate-700/50 ring-1 ring-emerald-500/10' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <Code className="w-3.5 h-3.5 text-emerald-400" />
+              4. Prompt Implementation
+            </button>
+            <button 
+              onClick={() => setActiveTab('tradeoffs')}
+              className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${activeTab === 'tradeoffs' ? 'bg-slate-800 text-indigo-300 shadow-sm border border-slate-700/50' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              5. RAG vs. Tuning
+            </button>
+            <button 
+              onClick={() => setActiveTab('lifecycle')}
+              className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${activeTab === 'lifecycle' ? 'bg-slate-800 text-indigo-300 shadow-sm border border-slate-700/50' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <Activity className="w-3.5 h-3.5 text-rose-400" />
+              6. Strategic Lifecycle
+            </button>
+            <button 
+              onClick={() => setActiveTab('quiz')}
+              className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${activeTab === 'quiz' ? 'bg-slate-800 text-indigo-300 shadow-sm border border-slate-700/50' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              7. Scenario Quiz
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+
+        {/* 1. VISUAL STACK VIEW */}
+        {activeTab === 'architecture' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left side: Isometric interactive Layers Stack */}
+            <div className="lg:col-span-5 space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                  <Layers2 className="w-5 h-5 text-indigo-400" />
+                  Ecosystem Layer Stack
+                </h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  Click on any layer below to explore its foundational architectural concepts.
+                </p>
+              </div>
+
+              {/* Stack Visualizer */}
+              <div className="relative flex flex-col gap-3 py-6 px-4 bg-slate-900/50 rounded-2xl border border-slate-800/80 shadow-2xl">
+                
+                {/* 3D slant helper overlay background */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent pointer-events-none rounded-2xl" />
+
+                {LAYERS_DATA.map((layer, index) => {
+                  const IconComp = layer.icon;
+                  const isActive = selectedLayerId === layer.id;
+                  
+                  return (
+                    <button
+                      key={layer.id}
+                      onClick={() => {
+                        setSelectedLayerId(layer.id);
+                        setActiveConceptIndex(0);
+                      }}
+                      className={`group relative text-left transition-all duration-300 p-4 rounded-xl border flex items-center justify-between overflow-hidden shadow-md transform hover:-translate-y-0.5 active:translate-y-0 ${
+                        isActive 
+                          ? `bg-slate-900 ${layer.borderColor} ring-1 ring-offset-1 ring-offset-slate-950 ring-indigo-500/40 shadow-indigo-950/40 shadow-lg` 
+                          : 'bg-slate-900/60 border-slate-800/60 hover:bg-slate-900 hover:border-slate-700/80'
+                      }`}
+                    >
+                      {/* Interactive Accent Glow */}
+                      <div className={`absolute top-0 left-0 w-2 h-full bg-gradient-to-b ${layer.color}`} />
+                      
+                      <div className="flex items-center gap-4 pl-2 z-10">
+                        <div className={`p-2.5 rounded-lg transition-transform duration-300 ${isActive ? 'scale-110 bg-slate-850' : 'bg-slate-950'} ${layer.textColor}`}>
+                          <IconComp className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className={`text-xs font-bold uppercase tracking-wider ${isActive ? layer.textColor : 'text-slate-400 group-hover:text-slate-300'}`}>
+                            {layer.name}
+                          </div>
+                          <div className={`text-xs font-medium mt-0.5 ${isActive ? 'text-slate-200' : 'text-slate-500'}`}>
+                            {layer.subtitle}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 z-10 pr-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold uppercase ${
+                          isActive 
+                            ? 'bg-indigo-500/10 text-indigo-300' 
+                            : 'bg-slate-950 text-slate-500 group-hover:text-slate-400'
+                        }`}>
+                          {isActive ? 'Selected' : 'View'}
+                        </span>
+                        <ArrowRight className={`w-4 h-4 transition-transform ${isActive ? 'translate-x-1 text-slate-200' : 'text-slate-600 group-hover:text-slate-400'}`} />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right side: Dynamic detail container */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              {/* Active Layer Details card */}
+              <div className={`rounded-2xl border ${selectedLayer.borderColor} bg-slate-900/80 p-6 shadow-xl relative overflow-hidden transition-all duration-300`}>
+                
+                {/* Decorative background glow */}
+                <div className={`absolute -right-20 -top-20 w-48 h-48 rounded-full bg-gradient-to-br ${selectedLayer.color} opacity-10 blur-3xl`} />
+                
+                <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
+                  <div className={`p-3 rounded-xl bg-slate-950 text-white`}>
+                    <selectedLayer.icon className={`w-6 h-6 ${selectedLayer.textColor}`} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-100">{selectedLayer.name}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{selectedLayer.subtitle}</p>
+                  </div>
+                </div>
+
+                <div className="py-4">
+                  <p className="text-sm leading-relaxed text-slate-300 bg-slate-950/40 p-4 rounded-xl border border-slate-800/60 font-medium">
+                    {selectedLayer.summary}
+                  </p>
+                </div>
+
+                {/* Conceptual items sub-grid */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-slate-400 tracking-wider uppercase flex items-center gap-2">
+                    <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
+                    Key Core Concepts & Architecture Points
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    {selectedLayer.keyConcepts.map((concept, idx) => (
+                      <div 
+                        key={idx}
+                        onClick={() => setActiveConceptIndex(idx)}
+                        className={`p-4 rounded-xl cursor-pointer border transition-all ${
+                          activeConceptIndex === idx 
+                            ? 'bg-slate-950 border-indigo-500/30 shadow-md ring-1 ring-indigo-500/10' 
+                            : 'bg-slate-950/30 border-slate-800 hover:border-slate-700/80 hover:bg-slate-950/50'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex gap-2.5 items-center">
+                            <span className="flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-slate-900 text-slate-400 rounded-md border border-slate-800">
+                              {idx + 1}
+                            </span>
+                            <span className={`text-sm font-bold ${activeConceptIndex === idx ? selectedLayer.textColor : 'text-slate-200'}`}>
+                              {concept.title}
+                            </span>
+                          </div>
+                          {activeConceptIndex === idx && (
+                            <span className="text-[9px] bg-indigo-500/10 text-indigo-300 px-1.5 py-0.5 rounded font-mono font-bold uppercase">Active</span>
+                          )}
+                        </div>
+                        <p className={`text-xs mt-2 leading-relaxed text-slate-400 ${activeConceptIndex === idx ? 'block' : 'line-clamp-1'}`}>
+                          {concept.desc}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Exam Focus Highlight Box */}
+                <div className="mt-6 p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/20 flex items-start gap-3">
+                  <div className="p-1.5 bg-indigo-500/10 rounded text-indigo-400">
+                    <HelpCircle className="w-4 h-4 shrink-0" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-indigo-300 uppercase tracking-wider">Exam Prep Takeaway</h5>
+                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                      {selectedLayer.examTakeaway}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* 2. AGENT SIMULATOR VIEW */}
+        {activeTab === 'simulator' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* Left: Configuration & Step-by-Step Visualization */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <Bot className="w-5 h-5 text-fuchsia-400" />
+                    Agent Reasoning Loop Simulator
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    See how Vertex AI Agent Builder abstracts complex ReAct loops to solve real-world problems.
+                  </p>
+                </div>
+
+                {/* Setup agent parameters */}
+                <div className="space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Choose Agent Goal:</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => { setAgentGoal('reset-password'); resetSimulator(); }}
+                      className={`p-3 rounded-lg border text-left text-xs font-medium transition-all ${agentGoal === 'reset-password' ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300' : 'bg-slate-900/50 border-slate-800/80 text-slate-400 hover:bg-slate-900'}`}
+                    >
+                      <div className="font-bold mb-1 flex items-center gap-2">
+                        <ShieldAlert className="w-3.5 h-3.5" /> Security Agent
+                      </div>
+                      Reset Password (uses IAM API Tool + Security Docs)
+                    </button>
+                    <button 
+                      onClick={() => { setAgentGoal('get-flight'); resetSimulator(); }}
+                      className={`p-3 rounded-lg border text-left text-xs font-medium transition-all ${agentGoal === 'get-flight' ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300' : 'bg-slate-900/50 border-slate-800/80 text-slate-400 hover:bg-slate-900'}`}
+                    >
+                      <div className="font-bold mb-1 flex items-center gap-2">
+                        <Database className="w-3.5 h-3.5" /> Maritime Logistics Agent
+                      </div>
+                      Retrieve Schedule (uses SQL Database Tool)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Controller Action buttons */}
+                <div className="flex items-center gap-3">
+                  {!simRunning ? (
+                    <button 
+                      onClick={startSimulator}
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/20"
+                    >
+                      <Zap className="w-4 h-4 fill-current" />
+                      Run Agent Loop
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={stopSimulator}
+                      className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-600/20"
+                    >
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Pause Loop
+                    </button>
+                  )}
+                  <button 
+                    onClick={resetSimulator}
+                    className="px-4 py-2.5 border border-slate-800 hover:bg-slate-800 rounded-xl text-sm font-semibold text-slate-400 transition-all hover:text-slate-200"
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                {/* Loop cycle node step animation */}
+                <div className="grid grid-cols-4 gap-2 pt-4 relative">
+                  
+                  {/* Background connecting bar */}
+                  <div className="absolute top-1/3 left-1/12 right-1/12 h-0.5 bg-slate-800 pointer-events-none" />
+
+                  {SIMULATOR_STEPS.map((step, index) => {
+                    const StepIcon = step.icon;
+                    const isActive = simStep === index && simRunning;
+                    
+                    return (
+                      <div 
+                        key={step.name} 
+                        className={`flex flex-col items-center text-center p-3 rounded-xl border relative z-10 transition-all ${
+                          isActive 
+                            ? 'bg-indigo-950/50 border-indigo-500/50 ring-1 ring-indigo-500/20 scale-105' 
+                            : 'bg-slate-950/40 border-slate-800/60'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                          isActive ? 'bg-indigo-500 text-slate-950 animate-pulse font-bold' : 'bg-slate-900 text-slate-500'
+                        }`}>
+                          <StepIcon className="w-4 h-4" />
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-300 block">{step.name}</span>
+                        <span className="text-[8px] text-slate-500 mt-1 font-mono uppercase">{step.actionText}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Guardrails Info Box */}
+                <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-500/20 flex gap-3">
+                  <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">Infinite Loop Protection Active</h4>
+                    <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                      If the agent gets stuck retrying a broken tool or experiences a cyclic logic conflict, Vertex AI Agent Builder automatically halts the agent loop once it hits a set limit (e.g. 5–10 loops) to prevent extreme token costs.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Right: Simulator Log Console */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl h-full flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                      <Terminal className="w-4 h-4 text-emerald-400" />
+                      Live Reasoning Output
+                    </h3>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${simRunning ? 'bg-emerald-500 animate-ping' : 'bg-amber-500'}`} />
+                      <span className="text-[10px] font-mono text-slate-500 font-bold">{simRunning ? 'RUNNING' : 'IDLE'}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950 rounded-xl p-4 mt-4 font-mono text-xs space-y-3 border border-slate-800/80 max-h-[320px] overflow-y-auto">
+                    {simLogs.length === 0 ? (
+                      <p className="text-slate-500 italic text-center py-10">Click "Run Agent Loop" to watch the autonomous system think, query data stores, and trigger actions...</p>
+                    ) : (
+                      simLogs.map((log, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`pb-2 border-b border-slate-900/50 last:border-b-0 leading-relaxed ${
+                            log.includes('🛑') ? 'text-amber-400' : log.includes('🚀') ? 'text-indigo-400' : 'text-slate-300'
+                          }`}
+                        >
+                          {log}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-slate-800">
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-[11px] text-slate-400">
+                    <span className="font-bold text-slate-200">Execution Diagnostics:</span> Standalone LLMs produce outputs in a single linear pass. True Gen AI Agents utilize cyclic loops interacting with live APIs, which requires continuous observation, state updates, and cost guardrails.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* 3. AGENT FUNDAMENTALS DEEP-DIVE */}
+        {activeTab === 'agent_fundamentals' && (
+          <div className="space-y-8 animate-fadeIn">
+            
+            {/* Top Overview Banner */}
+            <div className="bg-slate-900 border border-indigo-500/20 p-6 rounded-2xl shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                  <Bot className="w-5.5 h-5.5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-100">Foundations of Building Gen AI Agents</h2>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Deploy secure, robust agents. Adjust hyperparameters, master prompt structures, scale multi-agent wrappers, and leverage enterprise extension tools.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Split Section A & B */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              {/* Left Column: API Model Hyperparameters Sandbox */}
+              <div className="lg:col-span-5 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl space-y-6">
+                <div>
+                  <h3 className="text-xs font-bold text-indigo-300 uppercase tracking-widest flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4" />
+                    1. Model API Hyperparameters
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    How core mathematical sampling limits affect the token selection variance.
+                  </p>
+                </div>
+
+                {/* Temperature Slider */}
+                <div className="space-y-1.5 bg-slate-950 p-3.5 rounded-xl border border-slate-850">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-300">Temperature ($T$):</span>
+                    <span className="font-mono text-indigo-400">{tempValue}</span>
+                  </div>
+                  <input 
+                    type="range" min="0.0" max="1.0" step="0.1" 
+                    value={tempValue} 
+                    onChange={(e) => setTempValue(parseFloat(e.target.value))}
+                    className="w-full accent-indigo-500 bg-slate-900 rounded cursor-pointer h-1" 
+                  />
+                  <span className="text-[9px] text-slate-500 block leading-normal mt-1">
+                    {tempValue <= 0.2 
+                      ? "🔒 Deterministic: Perfect for structured JSON schemas, API commands, and code logic." 
+                      : tempValue <= 0.7 
+                        ? "⚖️ Balanced: Ideal for analytical reasoning, report drafting, and standard workflows." 
+                        : "🎨 Creative: Random distributions; ideal for creative copy, brainstorming, and storytelling."}
+                  </span>
+                </div>
+
+                {/* Token Probability Preview */}
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-2 text-xs">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Token Probability Space</span>
+                  
+                  {/* Dynamic probability bar visualization based on temperature */}
+                  <div className="space-y-2 pt-1 font-mono">
+                    <div className="flex items-center gap-2">
+                      <span className="w-16 text-slate-500">word_1:</span>
+                      <div className="flex-1 bg-slate-900 rounded-full h-3 overflow-hidden">
+                        <div 
+                          className="bg-indigo-500 h-full transition-all duration-300"
+                          style={{ width: `${Math.max(15, 95 - (tempValue * 60))}%` }}
+                        />
+                      </div>
+                      <span className="text-slate-300 text-[10px]">{Math.round(Math.max(15, 95 - (tempValue * 60)))}%</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="w-16 text-slate-500">word_2:</span>
+                      <div className="flex-1 bg-slate-900 rounded-full h-3 overflow-hidden">
+                        <div 
+                          className="bg-indigo-400 h-full transition-all duration-300"
+                          style={{ width: `${Math.min(40, 5 + (tempValue * 30))}%` }}
+                        />
+                      </div>
+                      <span className="text-slate-300 text-[10px]">{Math.round(Math.min(40, 5 + (tempValue * 30)))}%</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="w-16 text-slate-500">word_3:</span>
+                      <div className="flex-1 bg-slate-900 rounded-full h-3 overflow-hidden">
+                        <div 
+                          className="bg-purple-500 h-full transition-all duration-300"
+                          style={{ width: `${Math.min(30, 0 + (tempValue * 25))}%` }}
+                        />
+                      </div>
+                      <span className="text-slate-300 text-[10px]">{Math.round(Math.min(30, 0 + (tempValue * 25)))}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top-P and Top-K Explanation boxes */}
+                <div className="grid grid-cols-2 gap-3 text-[11px]">
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-850">
+                    <span className="font-extrabold text-slate-300 block">Top-P (Nucleus)</span>
+                    <p className="text-slate-500 mt-1 leading-relaxed">Limits selection to a pool of words whose cumulative probability matches the set target threshold.</p>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-850">
+                    <span className="font-extrabold text-slate-300 block">Top-K</span>
+                    <p className="text-slate-500 mt-1 leading-relaxed">Hard-limits the model selection candidates to a fixed maximum count of the highest scoring tokens.</p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Prompt Engineering Canvas */}
+              <div className="lg:col-span-7 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xs font-bold text-indigo-300 uppercase tracking-widest flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      2. Prompt Engineering Playbook
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Click the buttons to toggle template formats used to guide model reasoning.
+                    </p>
+                  </div>
+
+                  {/* Selector Tabs */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-850">
+                    {Object.keys(PROMPT_ENGINEERING_PLAYBOOK).map((key) => {
+                      const item = PROMPT_ENGINEERING_PLAYBOOK[key];
+                      const active = activePromptTech === key;
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => setActivePromptTech(key)}
+                          className={`px-2 py-2 text-[10px] font-extrabold rounded-lg transition-all ${
+                            active 
+                              ? 'bg-indigo-600 text-white shadow' 
+                              : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                          }`}
+                        >
+                          {item.title}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Preview Layout */}
+                  <div className="p-4 bg-slate-950 rounded-xl border border-slate-850 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-extrabold text-indigo-400 tracking-wider uppercase">
+                        {PROMPT_ENGINEERING_PLAYBOOK[activePromptTech].tag}
+                      </span>
+                      <button 
+                        onClick={() => triggerCopyFeedback(PROMPT_ENGINEERING_PLAYBOOK[activePromptTech].template)}
+                        className="text-[10px] bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold px-2 py-1 rounded flex items-center gap-1 transition-all"
+                      >
+                        {copyFeedback ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {copyFeedback ? "Copied" : "Copy Template"}
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-400 italic leading-relaxed pb-2 border-b border-slate-900">
+                      {PROMPT_ENGINEERING_PLAYBOOK[activePromptTech].concept}
+                    </p>
+                    <pre className="text-[11px] text-slate-300 leading-relaxed font-mono whitespace-pre-wrap overflow-x-auto select-all p-1 bg-slate-950">
+                      {PROMPT_ENGINEERING_PLAYBOOK[activePromptTech].template}
+                    </pre>
+                  </div>
+                </div>
+
+                <div className="bg-indigo-950/25 border border-indigo-500/20 p-3 rounded-lg text-[10px] text-slate-400 mt-4 leading-normal flex items-start gap-2">
+                  <Info className="w-3.5 h-3.5 text-indigo-400 mt-0.5 shrink-0" />
+                  <span>
+                    <strong>Certification Check:</strong> System instructions (anchoring agent persona/rules) and few-shot examples (formatting guarantees) form the primary baseline configuration for all corporate agents.
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Split Section C & D */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              {/* Left Column: Designing Reasoning Loops */}
+              <div className="lg:col-span-6 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xs font-bold text-fuchsia-300 uppercase tracking-widest flex items-center gap-2">
+                      <Workflow className="w-4 h-4" />
+                      3. Structuring Advanced Reasoning
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      The core algorithmic loops integrated directly into agent operational boundaries.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {[
+                      {
+                        id: 'simple',
+                        title: "Rule-Based Logic Enforcements",
+                        desc: "Injecting hard mathematical bounds or conditional evaluation schemas inside the system instruction flow to override probabilistic drift.",
+                        color: "border-cyan-500/10 hover:border-cyan-500/30",
+                        activeColor: "border-cyan-500/40 bg-cyan-950/10 text-cyan-200"
+                      },
+                      {
+                        id: 'cot',
+                        title: "Decomposed Thought Chains",
+                        desc: "Structuring the playbook tasks into sub-tasks (e.g. Flight validation → Airport policy check → Cargo dimension calculations) so the agent moves sequentially.",
+                        color: "border-indigo-500/10 hover:border-indigo-500/30",
+                        activeColor: "border-indigo-500/40 bg-indigo-950/10 text-indigo-200"
+                      },
+                      {
+                        id: 'prob',
+                        title: "Probabilistic Optimization Paths",
+                        desc: "Allowing the agent model to weight multi-dimensional uncertainty values at runtime, selecting the path with the highest semantic match score.",
+                        color: "border-fuchsia-500/10 hover:border-fuchsia-500/30",
+                        activeColor: "border-fuchsia-500/40 bg-fuchsia-950/10 text-fuchsia-200"
+                      }
+                    ].map((pillar) => {
+                      const active = activeReasonPillar === pillar.id;
+                      return (
+                        <div
+                          key={pillar.id}
+                          onClick={() => setActiveReasonPillar(pillar.id)}
+                          className={`p-4 rounded-xl cursor-pointer border transition-all text-xs leading-relaxed ${
+                            active ? pillar.activeColor : `bg-slate-950 ${pillar.color}`
+                          }`}
+                        >
+                          <span className="font-bold block mb-1">{pillar.title}</span>
+                          <p className="text-slate-400 leading-relaxed text-[11px]">{pillar.desc}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Multi-Agent Orchestration Diagram */}
+              <div className="lg:col-span-6 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xs font-bold text-fuchsia-300 uppercase tracking-widest flex items-center gap-2">
+                      <Layers className="w-4 h-4" />
+                      4. Building Applications with Agents
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      How modern corporate wrappers integrate specialized backend agents inside a centralized UI.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-slate-950 rounded-xl border border-slate-850 space-y-4">
+                    <div className="text-center font-mono text-[10px] tracking-wider uppercase text-slate-500 border-b border-slate-900 pb-2">
+                      Travel Agency App Orchestration Blueprint
+                    </div>
+
+                    {/* Nodes Visual flow */}
+                    <div className="flex items-center justify-around gap-2 pt-1">
+                      
+                      {/* Booking Agent node */}
+                      <button 
+                        onClick={() => setSelectedOrchestrationAgent('booking')}
+                        className={`p-2.5 rounded-xl border text-[10px] font-extrabold flex flex-col items-center justify-center gap-1 transition-all ${
+                          selectedOrchestrationAgent === 'booking' ? 'border-amber-500 bg-amber-950/20 text-amber-200' : 'border-slate-800 text-slate-500 hover:border-slate-700'
+                        }`}
+                      >
+                        <Wrench className="w-4 h-4" />
+                        Booking Agent
+                      </button>
+
+                      <ChevronRight className="w-4 h-4 text-slate-700" />
+
+                      {/* Budget Agent node */}
+                      <button 
+                        onClick={() => setSelectedOrchestrationAgent('budget')}
+                        className={`p-2.5 rounded-xl border text-[10px] font-extrabold flex flex-col items-center justify-center gap-1 transition-all ${
+                          selectedOrchestrationAgent === 'budget' ? 'border-emerald-500 bg-emerald-950/20 text-emerald-200' : 'border-slate-800 text-slate-500 hover:border-slate-700'
+                        }`}
+                      >
+                        <DollarSign className="w-4 h-4" />
+                        Budget Agent
+                      </button>
+
+                      <ChevronRight className="w-4 h-4 text-slate-700" />
+
+                      {/* Google Search Grounder node */}
+                      <button 
+                        onClick={() => setSelectedOrchestrationAgent('grounding')}
+                        className={`p-2.5 rounded-xl border text-[10px] font-extrabold flex flex-col items-center justify-center gap-1 transition-all ${
+                          selectedOrchestrationAgent === 'grounding' ? 'border-cyan-500 bg-cyan-950/20 text-cyan-200' : 'border-slate-800 text-slate-500 hover:border-slate-700'
+                        }`}
+                      >
+                        <Search className="w-4 h-4" />
+                        Search Grounding
+                      </button>
+
+                    </div>
+
+                    {/* Node explanation Box */}
+                    <div className="p-3 bg-slate-900/60 rounded-lg border border-slate-850 text-xs">
+                      <span className="font-bold text-slate-200 block mb-1 text-[11px] uppercase tracking-wide">
+                        {selectedOrchestrationAgent === 'booking' && "🛩️ Specialized Itinerary & Booking Agent"}
+                        {selectedOrchestrationAgent === 'budget' && "💰 Automated Cost Calculation Agent"}
+                        {selectedOrchestrationAgent === 'grounding' && "🌐 Live Google Search Grounding Agent"}
+                      </span>
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        {selectedOrchestrationAgent === 'booking' && "Responsible for scheduling parameters and connecting directly to GDS airline database APIs using structured extension schemas."}
+                        {selectedOrchestrationAgent === 'budget' && "Fitted with zero-temperature computational guidelines, auditing the calculated booking values against real-time corporate compliance rules."}
+                        {selectedOrchestrationAgent === 'grounding' && "Injecting live localized weather coordinates or port delay indexes directly into the conversation context to prevent factual hallucinations."}
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="bg-fuchsia-950/25 border border-fuchsia-500/20 p-3 rounded-lg text-[10px] text-slate-400 mt-4 leading-normal">
+                  <span className="font-bold text-fuchsia-300">Multi-Agent Systems:</span> Wrapping several specialized agents under one app frontend lets you delegate tasks cleanly. If one specialized sub-agent encounters a crash or failure, the primary wrapper isolating the rest of the stack remains operational.
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* 4. NEW TAB: PRACTICAL PROMPT IMPLEMENTATION & BLUEPRINT */}
+        {activeTab === 'prompt_implementation' && (
+          <div className="space-y-6 animate-fadeIn">
+            
+            {/* Topic Header Card */}
+            <div className="bg-slate-900 border border-emerald-500/20 p-6 rounded-2xl shadow-xl">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <span className="text-[10px] bg-emerald-500/15 text-emerald-400 font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    Hands-on Engineering Blueprint
+                  </span>
+                  <h2 className="text-lg font-black text-slate-100 mt-2 flex items-center gap-2">
+                    <Code className="w-5.5 h-5.5 text-emerald-400" />
+                    How & Where to Deploy Chain of Thought & ReAct Agents
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Transition from abstract prompt ideas into production-ready software deployments. Select a framework model and delivery style.
+                  </p>
+                </div>
+                
+                {/* Active Framework Tab Toggle */}
+                <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
+                  <button 
+                    onClick={() => { setImplFramework('cot'); }}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${implFramework === 'cot' ? 'bg-slate-850 text-emerald-400 border border-slate-700/50 shadow-sm' : 'text-slate-400'}`}
+                  >
+                    <Workflow className="w-3.5 h-3.5" />
+                    Chain of Thought (CoT)
+                  </button>
+                  <button 
+                    onClick={() => { setImplFramework('react'); }}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${implFramework === 'react' ? 'bg-slate-850 text-emerald-400 border border-slate-700/50 shadow-sm' : 'text-slate-400'}`}
+                  >
+                    <Bot className="w-3.5 h-3.5" />
+                    ReAct Engine Loop
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Platform Delivery Setup Tabs */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* Left Side: Steps & Implementation Environment (Console vs Code) */}
+              <div className="lg:col-span-5 space-y-6">
+                
+                {/* Deployment Selection environment */}
+                <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl space-y-4">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Where to Implement?</span>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => setImplPlatform('console')}
+                      className={`p-3 rounded-xl border text-left text-xs transition-all flex flex-col justify-between h-28 ${
+                        implPlatform === 'console' 
+                          ? 'bg-slate-950 border-emerald-500/40 text-emerald-300 shadow-lg shadow-emerald-950/20' 
+                          : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:bg-slate-900/60'
+                      }`}
+                    >
+                      <Layout className="w-5 h-5 text-emerald-500" />
+                      <div>
+                        <div className="font-extrabold text-[11px] text-slate-200">1. Managed Enterprise Console</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Vertex AI Agent Builder Playbooks</div>
+                      </div>
+                    </button>
+
+                    <button 
+                      onClick={() => setImplPlatform('code')}
+                      className={`p-3 rounded-xl border text-left text-xs transition-all flex flex-col justify-between h-28 ${
+                        implPlatform === 'code' 
+                          ? 'bg-slate-950 border-emerald-500/40 text-emerald-300 shadow-lg shadow-emerald-950/20' 
+                          : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:bg-slate-900/60'
+                      }`}
+                    >
+                      <Code className="w-5 h-5 text-indigo-400" />
+                      <div>
+                        <div className="font-extrabold text-[11px] text-slate-200">2. Programmatic Python Code</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">LangChain, LangGraph, or Native APIs</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Step-by-Step Blueprint List */}
+                <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl space-y-4">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Step-By-Step Deployment Checklist</span>
+                  
+                  {implFramework === 'cot' && (
+                    <div className="space-y-3.5 text-xs">
+                      <div className="flex gap-3 items-start">
+                        <span className="w-5 h-5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                        <div>
+                          <strong className="text-slate-200 block">Anchor the Systematic Framework</strong>
+                          <p className="text-slate-400 text-[11px] mt-0.5">Force deterministic step execution inside System Instructions. Enforce tags such as "Step-by-Step Thought:".</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <span className="w-5 h-5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                        <div>
+                          <strong className="text-slate-200 block">Lock down Sampling Temperature</strong>
+                          <p className="text-slate-400 text-[11px] mt-0.5">Set $T$ to 0.0 or 0.2 maximum. This ensures that analytical deductions follow structural linear math paths consistently.</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <span className="w-5 h-5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                        <div>
+                          <strong className="text-slate-200 block">Inject Few-Shot Logical Anchors</strong>
+                          <p className="text-slate-400 text-[11px] mt-0.5">Provide a precise demonstration schema depicting a question, a split multi-line thought sequence, and a final clean tag answer.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {implFramework === 'react' && (
+                    <div className="space-y-3.5 text-xs">
+                      <div className="flex gap-3 items-start">
+                        <span className="w-5 h-5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                        <div>
+                          <strong className="text-slate-200 block">Declare Available Tool Schemas</strong>
+                          <p className="text-slate-400 text-[11px] mt-0.5">Provide structured text descriptions of functions, required schemas, and argument parameters that the model is allowed to query.</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <span className="w-5 h-5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                        <div>
+                          <strong className="text-slate-200 block">Draft the Master ReAct Loop Prompt</strong>
+                          <p className="text-slate-400 text-[11px] mt-0.5">Instruct the model to strictly follow the "Thought → Action → Action Input → Observation" cycle formatting guidelines.</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <span className="w-5 h-5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                        <div>
+                          <strong className="text-slate-200 block">Construct the Parser Driver</strong>
+                          <p className="text-slate-400 text-[11px] mt-0.5">Write a local code engine to capture model output, halt parsing on "Action:", call the native API/Extension, and feed the outcome back as "Observation:".</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+              {/* Right Side: Copyable Practical Blueprints */}
+              <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                
+                {/* Code container metadata */}
+                <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                    <span className="text-[10px] font-mono text-slate-500 font-bold ml-2">
+                      {implPlatform === 'code' ? 'python_execution_script.py' : 'vertex_ai_agent_instructions.txt'}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const textToCopy = document.getElementById("target-impl-code-block")?.innerText || "";
+                      triggerCopyFeedback(textToCopy);
+                    }}
+                    className="text-[10px] bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-sm"
+                  >
+                    {copyFeedback ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copyFeedback ? "Copied code!" : "Copy Snippet"}
+                  </button>
+                </div>
+
+                {/* Practical Implementation Template Content Rendering Engine */}
+                <div className="mt-4 bg-slate-950 rounded-xl border border-slate-850 p-4 max-h-[460px] overflow-y-auto font-mono text-[11px] leading-relaxed text-slate-300">
+                  <pre id="target-impl-code-block" className="whitespace-pre-wrap select-all">
+                    
+                    {/* CASE A: COT + CODE */}
+                    {implFramework === 'cot' && implPlatform === 'code' && (
+`# ==============================================================================
+# BLUEPRINT: Chain of Thought (CoT) Prompting with Native Google Gemini SDK
+# ==============================================================================
+import os
+from google import genai
+from google.genai import types
+
+# 1. Initialize official Gemini SDK Client
+client = genai.Client()
+
+# 2. Define Chain of Thought Prompt Schema (Anchors logical multi-step thinking)
+cot_system_instruction = """
+You are a highly analytical Enterprise Cost Estimation Auditor.
+Your core goal is to audit and calculate corporate logistics transactions.
+
+CRITICAL INSTRUCTION:
+Before producing your final calculation answer, you MUST detail your complete 
+linear step-by-step thinking process. You are strictly REQUIRED to output your response 
+formatted in these consecutive sections:
+- THOUGHT PROCESS: Break down the metrics, variables, conversions, and equations.
+- CALCULATIONS: Detail the exact arithmetic formulations.
+- REVIEW: Double-check logic for edge-cases or math errors.
+- FINAL ANSWER: Provide a clear, clean corporate summary of the final output.
+"""
+
+# 3. Formulate the complex math/reasoning query
+user_query = """
+Cymbal Logistics has 15 large shipping vessels on long-haul routes.
+- 3 vessels are docked in dry port undergoing maintenance.
+- 4 vessels are navigating light, empty of cargo.
+- The remaining active vessels are carrying 125 containers each.
+Each container costs $450 to insure.
+Calculate the total insurance liability value for active cargo currently in transit.
+"""
+
+# 4. Invoke model using low temperature (0.1) for deterministic calculations
+response = client.models.generate_content(
+    model='gemini-2.5-flash-preview-09-2025',
+    contents=user_query,
+    config=types.GenerateContentConfig(
+        system_instruction=cot_system_instruction,
+        temperature=0.1,  # Low temperature is required for reasoning/CoT conformity
+        top_p=0.9,
+    )
+)
+
+print(response.text)`
+                    )}
+
+                    {/* CASE B: COT + CONSOLE */}
+                    {implFramework === 'cot' && implPlatform === 'console' && (
+`# ==============================================================================
+# BLUEPRINT: Vertex AI Agent Builder - Playbook Instructions for Chain of Thought
+# ==============================================================================
+
+[Goal]
+You are a specialized Enterprise Cost Estimation Agent. Your core target is to
+calculate shipping liabilities, cargo insurances, and transit costs.
+
+[System Persona & Constraints]
+- You are strictly analytical, precise, and deterministic.
+- Do not make assumptions. If data is missing, politely request clarification.
+- Always execute operations step-by-step.
+
+[Instructions - Step-by-Step Chain of Thought Loop]
+You must structure every math response strictly according to the following 
+reasoning playbook before summarizing:
+
+1. Under the header '## Thought Process', detail the analytical breakdown:
+   - Identify active variables, routes, and vessel counts.
+   - List formulas used (e.g. Active Vessels = Total Vessels - Down - Empty).
+
+2. Under the header '## Calculations', detail raw arithmetic:
+   - Calculate active transit volume.
+   - Compute total transit costs.
+
+3. Under the header '## Audit & Review', run standard edge validation tests.
+
+4. Under '## Final Resolution', output the final result.
+
+[Examples / Few-Shot Demonstrations]
+User: Calculate cargo value for 2 vessels, with 10 containers each at $5,000.
+Agent:
+## Thought Process
+- Identified 2 active vessels.
+- Identified 10 containers per vessel.
+- Identified unit cost of $5,000.
+- Total active cargo units = 2 vessels * 10 containers = 20 total containers.
+
+## Calculations
+- Total liability = 20 containers * $5,000 = $100,000.
+
+## Audit & Review
+- Validated values: 2 * 10 = 20. 20 * 5,000 = 100,000. Standard calculations pass.
+
+## Final Resolution
+The total active cargo insurance valuation value matches $100,000.
+
+[Target User Query]
+\${user_query}`
+                    )}
+
+                    {/* CASE C: REACT + CODE */}
+                    {implFramework === 'react' && implPlatform === 'code' && (
+`# ==============================================================================
+# BLUEPRINT: Custom-Coded ReAct (Reason + Act) Parser Loop (Python Engine)
+# ==============================================================================
+import re
+from google import genai
+from google.genai import types
+
+client = genai.Client()
+
+# 1. Define custom programmatic Tools available to the agent
+def query_vessel_status(vessel_id: str) -> str:
+    """Mock database lookup for ship statuses."""
+    db = {
+        "CYM-101": "Active - Navigating Route A. Cargo: 125 containers.",
+        "CYM-102": "Maintenance - Docked at dry port.",
+        "CYM-103": "Active - Transit Route B. Cargo: 80 containers."
+    }
+    return db.get(vessel_id, "Unknown vessel ID status.")
+
+# 2. Master ReAct Prompt directing model to cycle Thought->Action->Observation
+react_master_prompt = """
+You operate in a strict Reason-then-Act loop. You must solve the user goal.
+You have access to the following Tool function:
+- query_vessel_status(vessel_id: str): Returns vessel location and active cargo.
+
+Your structured loop MUST follow this consecutive format:
+Thought: Describe your logical reasoning for the next step.
+Action: Name of function to invoke. MUST be query_vessel_status.
+Action Input: The exact string input to pass.
+Observation: [Do not generate this part. It will be provided by the execution driver]
+
+When you have gathered all status results to satisfy the user goal, output:
+Final Answer: The final response to the user query.
+
+---
+User: Auditing vessel CYM-101. What is its current insurance exposure at $450 per container?
+"""
+
+# 3. Simple Programmatic Execution Driver (Parsing Agent loop)
+def run_react_agent_loop(prompt: str, max_iterations=5):
+    current_prompt = prompt
+    
+    for i in range(max_iterations):
+        print(f"\\n--- [AGENT LOOP STEP {i+1}] ---")
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash-preview-09-2025',
+            contents=current_prompt,
+            config=types.GenerateContentConfig(temperature=0.0) # 0.0 is critical for ReAct parsing
+        )
+        
+        output_text = response.text
+        print(output_text)
+        
+        # Check if model arrived at final answer
+        if "Final Answer:" in output_text:
+            print("\\n🟢 Success! Agent reached final resolution.")
+            break
+            
+        # Parse out Tool Call parameters using RegEx
+        action_match = re.search(r"Action:\\s*(\\w+)", output_text)
+        action_input_match = re.search(r"Action Input:\\s*\"?([^\"]+)\"?", output_text)
+        
+        if action_match and action_input_match:
+            tool_name = action_match.group(1).strip()
+            tool_val = action_input_match.group(1).strip()
+            
+            # Execute actual python function tool callback
+            if tool_name == "query_vessel_status":
+                print(f"🛠️ [System Executing Tool] Calling: {tool_name} with Input: '{tool_val}'")
+                observation = query_vessel_status(tool_val)
+            else:
+                observation = "Error: Invalid tool requested."
+                
+            print(f"📡 [System Observation Received] {observation}")
+            
+            # Append output and observation to history state for next reasoning cycle
+            current_prompt += f"\\n{output_text}\\nObservation: {observation}"
+        else:
+            print("⚠️ ReAct Parser Error: Unable to detect structured Action tags. Stopping.")
+            break
+
+run_react_agent_loop(react_master_prompt)`
+                    )}
+
+                    {/* CASE D: REACT + CONSOLE */}
+                    {implFramework === 'react' && implPlatform === 'console' && (
+`# ==============================================================================
+# BLUEPRINT: Vertex AI Agent Builder - ReAct Tool Setup & OpenAPI Schema
+# ==============================================================================
+
+In Vertex AI Agent Builder, you do NOT write raw regex parsers.
+The platform handles the ReAct (Reason-then-Act) loop natively.
+Instead, you register the available APIs as "Extension Tools".
+
+Below is the structured JSON OpenAPI Schema you register inside the 
+Vertex AI Console to link your vessel database API to the agent backend:
+
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Vessel Status API",
+    "version": "1.0.0",
+    "description": "Enterprise database retrieving real-time active cargo details."
+  },
+  "servers": [
+    {
+      "url": "https://api.cymballogistics.internal/v1"
+    }
+  ],
+  "paths": {
+    "/vessel/status": {
+      "get": {
+        "summary": "Retrieve status and cargo counts of a ship.",
+        "operationId": "query_vessel_status",
+        "parameters": [
+          {
+            "name": "vessel_id",
+            "in": "query",
+            "required": true,
+            "description": "The custom corporate identifier, e.g. CYM-101",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of status and active container counts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vessel_id": { "type": "string" },
+                    "status": { "type": "string" },
+                    "cargo_containers": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+---
+NATIVE AGENT BINDING IN CONSOLE:
+1. Navigate to Vertex AI Agent Builder -> Tools -> Create.
+2. Select 'Extension' style and paste the OpenAPI Schema above.
+3. Attach authentication credentials (e.g., API Key or OAuth).
+4. Within your playbook instructions, simply write:
+   "To retrieve live cargo metadata, call query_vessel_status with the vessel_id."`
+                    )}
+
+                  </pre>
+                </div>
+
+                <div className="bg-emerald-950/20 border border-emerald-500/25 p-4 rounded-xl text-[11px] text-slate-400 mt-5 leading-relaxed">
+                  <span className="font-extrabold text-emerald-300 block mb-1">💡 Architecture Tip for Enterprise Leaders:</span>
+                  If you are deploying on <strong>Vertex AI Agent Builder</strong>, always opt for <strong>Option 1 (Managed Console)</strong>. It completely abstracts data vectorization, API payload parsing, and prompt looping, allowing your engineering teams to deliver robust enterprise solutions in days instead of months of custom programmatic engineering.
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* 5. TRADE-OFFS INTERACTIVE SANDBOX */}
+        {activeTab === 'tradeoffs' && (
+          <div className="space-y-6">
+            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl">
+              <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-indigo-400" />
+                Strategic Trade-offs: RAG vs. Fine-Tuning
+              </h2>
+              <p className="text-sm text-slate-400 mt-1">
+                For the Generative AI Leader exam, understanding when to apply RAG versus when to Fine-Tune is a cornerstone domain. Analyze the architectural dimensions below.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Box 1: Retrieval-Augmented Generation (RAG) */}
+              <div className="bg-slate-900/50 border border-indigo-500/15 p-6 rounded-2xl space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-800">
+                  <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">
+                    <Database className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold uppercase tracking-wider text-indigo-300">Retrieval-Augmented Generation (RAG)</h3>
+                    <p className="text-xs text-slate-400">The Grounded approach</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  RAG dynamically feeds relevant facts from internal databases, wikis, or files into the system context alongside your query. This grounds the AI, keeping outputs factual.
+                </p>
+
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center text-slate-400 border-b border-slate-900/60 pb-1.5">
+                    <span>Updates & Maintenance:</span>
+                    <span className="text-emerald-400 font-bold">Real-time / Instant</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400 border-b border-slate-900/60 pb-1.5">
+                    <span>Training Requirement:</span>
+                    <span className="text-slate-300 font-medium">None (Uses Base Model)</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400 border-b border-slate-900/60 pb-1.5">
+                    <span>Hallucination Rate:</span>
+                    <span className="text-emerald-400 font-bold">Very Low (Strictly Grounded)</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Primary Strength:</span>
+                    <span className="text-indigo-400 font-semibold">Handling fast-changing data</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Box 2: Fine-Tuning */}
+              <div className="bg-slate-900/50 border border-fuchsia-500/15 p-6 rounded-2xl space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-800">
+                  <div className="p-2 bg-fuchsia-500/10 text-fuchsia-400 rounded-lg">
+                    <Brain className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold uppercase tracking-wider text-fuchsia-300">Model Fine-Tuning</h3>
+                    <p className="text-xs text-slate-400">The Style, Format & Domain approach</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Fine-tuning retrains the model on custom datasets to permanently adjust its internal weights. This teaches the base AI specific tones, domain terms, or rigid formatting formats.
+                </p>
+
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center text-slate-400 border-b border-slate-900/60 pb-1.5">
+                    <span>Updates & Maintenance:</span>
+                    <span className="text-rose-400 font-bold">High Cost / Requires retraining</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400 border-b border-slate-900/60 pb-1.5">
+                    <span>Training Requirement:</span>
+                    <span className="text-rose-400 font-bold">Requires specialized GPU cluster</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400 border-b border-slate-900/60 pb-1.5">
+                    <span>Formatting Consistency:</span>
+                    <span className="text-emerald-400 font-bold">Extreme Consistency</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Primary Strength:</span>
+                    <span className="text-fuchsia-400 font-semibold">Mastering syntax, vocabulary & style</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Strategic Summary Matrix Alert */}
+            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800/80">
+              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider mb-3">Architectural Rule of Thumb</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-850">
+                  <div className="font-bold text-indigo-400 mb-1">If you need dynamic data:</div>
+                  Always pick <span className="text-indigo-300 font-bold">RAG</span>. Training models continually on fluctuating datasets (like logistics tables or financial stock records) is unfeasible.
+                </div>
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-850">
+                  <div className="font-bold text-fuchsia-400 mb-1">If you need custom behaviors:</div>
+                  Pick <span className="text-fuchsia-300 font-bold">Fine-Tuning</span>. It is difficult to force standard foundation models to stick to exact jargon styles through basic instructions over long conversations.
+                </div>
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-850">
+                  <div className="font-bold text-amber-400 mb-1">For Enterprise Excellence:</div>
+                  Use a <span className="text-amber-300 font-bold">Hybrid Stack</span>. Build a model fine-tuned for formatting requirements, then feed vectorized Data Stores to it at runtime.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* 6. STRATEGIC LIFECYCLE TAB */}
+        {activeTab === 'lifecycle' && (
+          <div className="space-y-8 animate-fadeIn">
+            
+            {/* Tab Introduction */}
+            <div className="bg-slate-900/90 border border-rose-500/20 p-6 rounded-2xl shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl">
+                  <Activity className="w-5.5 h-5.5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-100">AI Project Resources, Edge, & Ongoing Lifecycle</h2>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Master corporate feasibility variables, personnel delegation guidelines, edge compute trade-offs, and critical MLOps maintenance metrics.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Split Section 1: Edge Computing Interactive Module */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              {/* Left Column: Edge vs Cloud Conceptual Card */}
+              <div className="lg:col-span-5 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="text-cyan-400 w-5 h-5" />
+                    <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide">AI on the Edge</h3>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Edge computing runs neural models directly on physical client endpoints (smartphones, IoT arrays, robotic nodes). 
+                  </p>
+                  
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 bg-slate-950 rounded-lg border border-slate-850">
+                      <span className="font-bold text-cyan-400 block mb-0.5">Primary Benefits:</span>
+                      Real-time responsiveness (no internet packet delay), enhanced local data privacy control, and offline autonomy.
+                    </div>
+                    <div className="p-3 bg-slate-950 rounded-lg border border-slate-850">
+                      <span className="font-bold text-indigo-400 block mb-0.5">Google Edge Tech Stack:</span>
+                      We optimize models for devices using <span className="text-white font-mono font-semibold">LiteRT (Lite Runtime)</span> and deploy lightweight variants like <span className="text-white font-mono font-semibold">Gemini Nano</span>.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-cyan-950/20 border border-cyan-500/20 p-3 rounded-lg text-[10px] text-slate-400 mt-4">
+                  <span className="font-bold text-cyan-300">Exam Note:</span> Vertex AI serves as a central orchestrator to construct, evaluate, and export models before deploying them onto client-side Edge hardware.
+                </div>
+              </div>
+
+              {/* Right Column: Interactive Edge Matcher Activity */}
+              <div className="lg:col-span-7 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-rose-400" />
+                  Quick Decision Diagnostic: Edge vs Cloud Deployment
+                </h4>
+                <p className="text-xs text-slate-400 mb-4">
+                  Match each scenario to either <span className="text-cyan-400 font-semibold">Edge</span> or <span className="text-indigo-400 font-semibold">Cloud</span>.
+                </p>
+
+                <div className="space-y-3.5">
+                  {EDGE_SCENARIOS.map((scenario) => {
+                    const chosen = edgeScore[scenario.id];
+                    const isMatched = chosen !== undefined;
+                    const isCorrect = isMatched && chosen === scenario.correct;
+
+                    return (
+                      <div key={scenario.id} className="p-4 bg-slate-950 rounded-xl border border-slate-850/80 flex flex-col md:flex-row md:items-center justify-between gap-3 transition-all">
+                        <div className="max-w-md">
+                          <h5 className="text-xs font-bold text-slate-200">{scenario.title}</h5>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{scenario.desc}</p>
+                          {isMatched && (
+                            <p className={`text-[10px] mt-1.5 font-medium flex items-center gap-1 ${isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {isCorrect ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                              {scenario.rationale}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={() => handleEdgeMatch(scenario.id, 'edge')}
+                            disabled={isMatched}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide transition-all ${
+                              chosen === 'edge' 
+                                ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 border' 
+                                : 'bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400'
+                            }`}
+                          >
+                            EDGE
+                          </button>
+                          <button
+                            onClick={() => handleEdgeMatch(scenario.id, 'cloud')}
+                            disabled={isMatched}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide transition-all ${
+                              chosen === 'cloud' 
+                                ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300 border' 
+                                : 'bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400'
+                            }`}
+                          >
+                            CLOUD
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Split Section 2: Core Project Resources (People, Cost, Time) */}
+            <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800 flex-col md:flex-row gap-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
+                    <Users className="w-4.5 h-4.5 text-rose-400" />
+                    AI Resource Allocation Planner
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Toggle development tiers to evaluate organizational headcount, budgets, and milestones.</p>
+                </div>
+                
+                {/* Tier Picker */}
+                <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-850">
+                  <button 
+                    onClick={() => setProjectApproach('prebuilt')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${projectApproach === 'prebuilt' ? 'bg-slate-850 text-indigo-300' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Prebuilt Application
+                  </button>
+                  <button 
+                    onClick={() => setProjectApproach('agent')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${projectApproach === 'agent' ? 'bg-slate-850 text-indigo-300' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Custom Agent Builder
+                  </button>
+                  <button 
+                    onClick={() => setProjectApproach('custom_model')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${projectApproach === 'custom_model' ? 'bg-slate-850 text-indigo-300' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Custom Model Build
+                  </button>
+                </div>
+              </div>
+
+              {/* Dynamic metrics panel */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6">
+                
+                {/* Metrics Box */}
+                <div className="lg:col-span-5 space-y-4">
+                  <div className="p-4 bg-slate-950 rounded-xl border border-slate-850 space-y-3 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-slate-500" /> Time to Launch:</span>
+                      <span className="font-bold text-indigo-400">{activeApproach.time}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-slate-500" /> Projected Cost:</span>
+                      <span className="font-bold text-amber-400">{activeApproach.cost}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-slate-500" /> Lead Personnel:</span>
+                      <span className="font-bold text-slate-200 text-right">{activeApproach.people}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed bg-indigo-950/10 p-4 rounded-xl border border-indigo-500/10">
+                    <span className="font-bold text-indigo-300 block mb-1">Architecture Strategy:</span>
+                    {activeApproach.focus}
+                  </p>
+                </div>
+
+                {/* Team Roles Box */}
+                <div className="lg:col-span-7 space-y-3">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Required Headcount Roles:</span>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {activeApproach.rolesNeeded.map((roleObj) => (
+                      <div key={roleObj.role} className="p-4 bg-slate-950/60 border border-slate-850 rounded-xl space-y-1">
+                        <span className="text-xs font-extrabold text-slate-200 block">{roleObj.role}</span>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">{roleObj.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pricing Key Factors */}
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 mt-4 space-y-2">
+                    <span className="text-xs font-bold text-slate-300 block pb-1 border-b border-slate-900">Variables Influencing Project Billing</span>
+                    <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400">
+                      <div>• Model Parameters & Size Complexity</div>
+                      <div>• Model Context Window Size (token rates)</div>
+                      <div>• Embedded Vectors & Fine-Tuning Storage</div>
+                      <div>• Infrastructure Run-Time / Managed Host Nodes</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Split Section 3: Interactive Solution Needs Estimator */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              {/* Sliders Input Panel */}
+              <div className="lg:col-span-6 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl space-y-5">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
+                    <Sliders className="w-4.5 h-4.5 text-indigo-400" />
+                    AI Needs Variable Modeler
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Adjust sliders based on corporate business requirements to compute target deployment styles.</p>
+                </div>
+
+                {/* Scale Slider */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-300">Target Scale:</span>
+                    <span className="text-indigo-400">
+                      {scNeeds.scale === 1 ? "Personal / Small Team" : scNeeds.scale === 2 ? "Company Wide (Standard)" : "Millions of Global Users"}
+                    </span>
+                  </div>
+                  <input 
+                    type="range" min="1" max="3" step="1" 
+                    value={scNeeds.scale} 
+                    onChange={(e) => setScNeeds(prev => ({ ...prev, scale: parseInt(e.target.value) }))}
+                    className="w-full accent-indigo-500 bg-slate-950 rounded-lg cursor-pointer h-1.5" 
+                  />
+                </div>
+
+                {/* Customization Slider */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-300">Level of Customization:</span>
+                    <span className="text-indigo-400">
+                      {scNeeds.customization === 1 ? "Standard APIs" : scNeeds.customization === 2 ? "Grounded / Fine-Tuned Model" : "Proprietary Model Build"}
+                    </span>
+                  </div>
+                  <input 
+                    type="range" min="1" max="3" step="1" 
+                    value={scNeeds.customization} 
+                    onChange={(e) => setScNeeds(prev => ({ ...prev, customization: parseInt(e.target.value) }))}
+                    className="w-full accent-indigo-500 bg-slate-950 rounded-lg cursor-pointer h-1.5" 
+                  />
+                </div>
+
+                {/* Latency Slider */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-300">Latency Threshold:</span>
+                    <span className="text-indigo-400">
+                      {scNeeds.latency === 1 ? "Flexible (>1s batch)" : scNeeds.latency === 2 ? "Interactive (<300ms cloud)" : "Zero-latency Edge (<20ms local)"}
+                    </span>
+                  </div>
+                  <input 
+                    type="range" min="1" max="3" step="1" 
+                    value={scNeeds.latency} 
+                    onChange={(e) => setScNeeds(prev => ({ ...prev, latency: parseInt(e.target.value) }))}
+                    className="w-full accent-indigo-500 bg-slate-950 rounded-lg cursor-pointer h-1.5" 
+                  />
+                </div>
+
+                {/* Connectivity Slider */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-slate-300">Connectivity Window:</span>
+                    <span className="text-indigo-400">
+                      {scNeeds.connectivity === 1 ? "Forced Offline / Isolated" : scNeeds.connectivity === 2 ? "Intermittent / Semi-Connected" : "Reliable Online Connection"}
+                    </span>
+                  </div>
+                  <input 
+                    type="range" min="1" max="3" step="1" 
+                    value={scNeeds.connectivity} 
+                    onChange={(e) => setScNeeds(prev => ({ ...prev, connectivity: parseInt(e.target.value) }))}
+                    className="w-full accent-indigo-500 bg-slate-950 rounded-lg cursor-pointer h-1.5" 
+                  />
+                </div>
+              </div>
+
+              {/* Engine Prescription Output */}
+              <div className="lg:col-span-6 flex flex-col justify-between">
+                <div className={`p-6 rounded-2xl border ${currentRec.class} h-full flex flex-col justify-between space-y-4 transition-all duration-300`}>
+                  
+                  <div className="space-y-2">
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block">Recommended Architecture prescription:</span>
+                    <h4 className="text-base font-extrabold text-slate-100 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                      {currentRec.title}
+                    </h4>
+                    <span className="inline-block text-xs font-mono bg-slate-950/85 text-slate-300 px-3 py-1 rounded border border-slate-800">
+                      Primary Engine: {currentRec.framework}
+                    </span>
+                    <p className="text-xs leading-relaxed text-slate-300 pt-2">
+                      {currentRec.desc}
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-850 space-y-2">
+                    <span className="text-xs font-bold text-slate-200 block">Leadership Compliance Tip:</span>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Transparency & Explainability: Certain operational zones (healthcare diagnosis, commercial loans, aircraft systems) legally mandate audit reasoning explaining why the AI output resolved a certain decision block.
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+            {/* Split Section 4: Maintenance Considerations Accordion */}
+            <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide mb-4">Maintaining Your Generative AI Lifecycle</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                {[
+                  {
+                    title: "1. Model Monitoring & Drift",
+                    desc: "Analyze outputs to detect performance degradation over time, capture input skew drift (live data moving away from baseline training data formats), and deploy automatic triggers to prompt retrain loops."
+                  },
+                  {
+                    title: "2. Vector & Data Updates",
+                    desc: "RAG vectors aren't static. Deploy daily/weekly document ingestion flows to refresh internal wiki assets, data sheets, and structural metadata without system down-time."
+                  },
+                  {
+                    title: "3. Software Bugs & Prompts",
+                    desc: "Manage prompt template regressions. Ensure tool-calling API integrations are continuously maintained to match downstream enterprise software version upgrades."
+                  },
+                  {
+                    title: "4. Compute & Hardware",
+                    desc: "Leverage cloud resource auto-scaling. Allocate virtual clusters to support inference spike workloads, while physical host machines must optimize temperature/mesh parameters."
+                  },
+                  {
+                    title: "5. Security & Compliance",
+                    desc: "Verify data governance rules. Apply role-based context constraints so unauthorized users cannot access privileged databases or leverage tools containing corporate security credentials."
+                  }
+                ].map((pillar, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveMaintPillar(idx)}
+                    className={`p-4 rounded-xl border text-left transition-all ${
+                      activeMaintPillar === idx 
+                        ? 'bg-slate-950 border-rose-500/30 ring-1 ring-rose-500/10' 
+                        : 'bg-slate-950/30 border-slate-850 hover:bg-slate-950/60 hover:border-slate-850'
+                    }`}
+                  >
+                    <span className={`text-[10px] font-mono font-bold block mb-1.5 ${activeMaintPillar === idx ? 'text-rose-400' : 'text-slate-500'}`}>
+                      PHASE {idx + 1}
+                    </span>
+                    <h4 className="text-xs font-bold text-slate-200 line-clamp-2">{pillar.title}</h4>
+                  </button>
+                ))}
+              </div>
+
+              {/* Explanatory details card */}
+              <div className="bg-slate-950 rounded-xl p-5 border border-slate-850 mt-4 leading-relaxed">
+                <h4 className="text-xs font-bold text-slate-300 pb-2 border-b border-slate-900 flex items-center gap-2">
+                  <Info className="w-4 h-4 text-rose-400 shrink-0" />
+                  {activeMaintPillar + 1}. Operational Deep-Dive Details
+                </h4>
+                <p className="text-xs text-slate-400 mt-2.5 leading-relaxed">
+                  {[
+                    "Standard base models are highly static after training. Monitoring checks evaluate live prompt context against initial benchmarks to make sure response distributions remain highly aligned, prompting a retraining flag if skew passes predefined thresholds.",
+                    "Dynamic environments (e.g., maritime schedules, logistics, stock arrays) must have dedicated vector indexing cronjobs. This avoids model hallucination and ensures real-time responses stay anchored to the business source of truth.",
+                    "Prompt templates, structured API schemas, and response variables can drift. Continuous quality testing cycles ensure that downstream changes in database architecture don't break agent execution pipelines.",
+                    "Scaling custom models implies managing expensive persistent infrastructure. Platforms like Google Cloud handle computing scale, node pooling, and distributed orchestration to save operational costs.",
+                    "Data controls must strictly separate public sandboxes from core user documents. Implement zero-trust security checks at the application level to ensure user requests don't leak private documents via prompt injections."
+                  ][activeMaintPillar]}
+                </p>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* 7. SCENARIO QUIZ VIEW */}
+        {activeTab === 'quiz' && (
+          <div className="space-y-6">
+            
+            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl">
+              <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-indigo-400" />
+                Gen AI Leader Certification Mock Board Scenarios
+              </h2>
+              <p className="text-sm text-slate-400 mt-1">
+                Test your architectural expertise on actual scenarios inspired by real Gen AI case studies. Choose the strategy that best satisfies the technical constraints.
+              </p>
+            </div>
+
+            {PRACTICE_SCENARIOS.map((scenario, sIdx) => {
+              const isSubmitted = quizSubmitted[sIdx];
+              const selectedOpt = quizAnswers[sIdx];
+              
+              return (
+                <div key={sIdx} className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">
+                      {sIdx + 1}
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-200 leading-relaxed">
+                      {scenario.question}
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3.5 mt-2">
+                    {scenario.options.map((opt) => {
+                      const isOptionSelected = selectedOpt === opt.value;
+                      let optionStyle = "border-slate-800 hover:border-slate-700 bg-slate-950/40";
+                      
+                      if (isOptionSelected) {
+                        optionStyle = "border-indigo-500/50 bg-indigo-950/20";
+                      }
+                      
+                      if (isSubmitted) {
+                        if (opt.value === scenario.answer) {
+                          optionStyle = "border-emerald-500/40 bg-emerald-950/20";
+                        } else if (isOptionSelected) {
+                          optionStyle = "border-rose-500/40 bg-rose-950/20";
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={opt.value}
+                          disabled={isSubmitted}
+                          onClick={() => handleQuizSelect(sIdx, opt.value)}
+                          className={`text-left p-4 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-3 ${optionStyle}`}
+                        >
+                          <div className="mt-0.5">
+                            {isSubmitted && opt.value === scenario.answer ? (
+                              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                            ) : isSubmitted && isOptionSelected ? (
+                              <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                            ) : (
+                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold ${isOptionSelected ? 'border-indigo-400 text-indigo-400 bg-indigo-500/10' : 'border-slate-600 text-slate-400'}`}>
+                                {opt.value}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-slate-200">{opt.label}</span>
+                            {isSubmitted && (
+                              <p className="text-[11px] text-slate-400 mt-1.5 italic">
+                                {opt.detail}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
+                    <span className="text-[11px] text-slate-500">
+                      {isSubmitted ? "Locked in" : "Select an option then lock in"}
+                    </span>
+                    {!isSubmitted ? (
+                      <button
+                        disabled={!selectedOpt}
+                        onClick={() => submitQuizQuestion(sIdx)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          selectedOpt 
+                            ? "bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer" 
+                            : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                        }`}
+                      >
+                        Submit Answer
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs font-bold">
+                        {selectedOpt === scenario.answer ? (
+                          <span className="text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg">Correct Choice!</span>
+                        ) : (
+                          <span className="text-rose-400 bg-rose-500/10 px-3 py-1 rounded-lg">Incorrect Strategy</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              );
+            })}
+
+          </div>
+        )}
+
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-900 bg-slate-950 py-6 px-4 text-center text-slate-500 text-xs mt-12">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p>© 2026 Gen AI Certification Sandbox. Built using real architecture guidelines.</p>
+          <div className="flex gap-4">
+            <span className="text-slate-400 hover:text-slate-300">Vertex AI Compatible</span>
+            <span>•</span>
+            <span className="text-slate-400 hover:text-slate-300">Enterprise AI Ready</span>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
