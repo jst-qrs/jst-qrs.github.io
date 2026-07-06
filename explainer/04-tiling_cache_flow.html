@@ -1,0 +1,291 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{font-family:var(--font-sans,sans-serif);color:var(--text-primary);padding:16px 0 8px;max-width:680px;margin:0 auto}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.card-title{font-size:15px;font-weight:500;margin-bottom:6px}
+.card-body{font-size:13px;color:var(--text-secondary);line-height:1.65}
+.badge{display:inline-block;font-family:var(--font-mono,monospace);font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid;margin-right:6px;vertical-align:middle}
+.stepper{display:flex;gap:0;align-items:center;margin:14px 0 10px;overflow-x:auto;scrollbar-width:none}
+.stepper::-webkit-scrollbar{display:none}
+.step-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;border:none;background:none;padding:0 6px;opacity:.4;transition:opacity .2s}
+.step-btn.active{opacity:1}
+.step-btn.done{opacity:.65}
+.step-num{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--text-secondary);background:var(--surface-1);transition:all .2s}
+.step-btn.active .step-num{background:var(--text-primary);color:var(--surface-2);border-color:var(--text-primary)}
+.step-btn.done .step-num{background:var(--bg-success);border-color:var(--border-success);color:var(--text-success);font-size:10px}
+.step-label{font-size:10px;color:var(--text-muted);white-space:nowrap;text-align:center;max-width:72px;line-height:1.3}
+.step-btn.active .step-label{color:var(--text-primary)}
+.step-divider{width:16px;height:1px;background:var(--border);flex-shrink:0;margin-bottom:14px}
+.info-card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-top:10px;min-height:90px}
+.ic-title{font-size:14px;font-weight:500;margin-bottom:5px}
+.ic-body{font-size:13px;color:var(--text-secondary);line-height:1.65}
+.nav-row{display:flex;gap:8px;margin-top:10px;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:var(--surface-1);color:var(--text-primary);font-family:var(--font-sans,sans-serif);transition:all .15s}
+.btn:hover{border-color:var(--border-stronger)}
+.btn.primary{background:var(--text-primary);color:var(--surface-2);border-color:var(--text-primary)}
+.btn.primary:hover{opacity:.85}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.ctr{font-size:12px;color:var(--text-muted);margin-left:auto;font-family:var(--font-mono,monospace)}
+</style>
+
+<div class="w">
+
+<div class="card">
+  <div class="card-title">The core idea: tiling</div>
+  <div class="card-body">A 512 MB weight matrix never sits in the cache all at once. The GPU slices it into small <strong>tiles</strong> — chunks that fit in L1 SRAM — processes each tile, evicts it, then loads the next. The cache is a <em>window</em> that slides across the full matrix, not a container that holds it.</div>
+</div>
+
+<svg viewBox="0 0 680 330" width="100%" role="img">
+  <title>Weight matrix tiling diagram</title>
+  <desc>Shows a 512MB weight matrix being sliced into tiles that stream through L2 cache and L1 SRAM</desc>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- ── WEIGHT MATRIX (left) ── -->
+  <!-- label -->
+  <text x="10" y="22" font-size="10" font-weight="500" fill="#5A9ADA" font-family="var(--font-mono,monospace)">Layer 1 weight matrix  (4096 × 4096 × 2 bytes = 32 MB)</text>
+
+  <!-- grid of tiles: 8 cols × 10 rows -->
+  <!-- each tile = 38w × 24h, gap=2, origin x=10 y=30 -->
+  <g id="matrix-grid">
+  </g>
+
+  <!-- HBM label under matrix -->
+  <rect x="10" y="280" width="320" height="22" rx="4" fill="#1A2E4A" stroke="#2E5A8A" stroke-width="0.7"/>
+  <text x="170" y="295" text-anchor="middle" font-size="10" fill="#5A9ADA" font-family="var(--font-mono,monospace)">HBM  —  32 MB weight matrix lives here</text>
+
+  <!-- ── ARROWS ── -->
+  <!-- HBM → L2 -->
+  <line x1="340" y1="155" x2="380" y2="155" stroke="#2E5A8A" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#ar)" opacity="0.7"/>
+  <text x="360" y="148" text-anchor="middle" font-size="9" fill="#3A6A9A" font-family="var(--font-mono,monospace)">one tile</text>
+  <text x="360" y="168" text-anchor="middle" font-size="9" fill="#3A6A9A" font-family="var(--font-mono,monospace)">at a time</text>
+
+  <!-- L2 → L1 -->
+  <line x1="500" y1="155" x2="534" y2="155" stroke="#7A6A3A" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#ar)" opacity="0.7"/>
+  <text x="517" y="148" text-anchor="middle" font-size="9" fill="#9A8A4A" font-family="var(--font-mono,monospace)">sub-tile</text>
+
+  <!-- L1 → TC -->
+  <line x1="616" y1="190" x2="616" y2="218" stroke="#4A5AAA" stroke-width="1.5" stroke-dasharray="3 2" marker-end="url(#ar)" opacity="0.7"/>
+
+  <!-- ── L2 CACHE (middle) ── -->
+  <rect x="380" y="60" width="120" height="190" rx="8" fill="#1E1E3A" stroke="#4A4A7A" stroke-width="1" id="l2-box"/>
+  <text x="440" y="78" text-anchor="middle" font-size="10" font-weight="500" fill="#8080D0" font-family="var(--font-mono,monospace)">L2 cache</text>
+  <text x="440" y="92" text-anchor="middle" font-size="9" fill="#5A5A9A" font-family="var(--font-mono,monospace)">50 MB total</text>
+  <!-- L2 slots: several tiles queued -->
+  <rect id="l2s0" x="390" y="100" width="100" height="22" rx="3" fill="#2A2A4A" stroke="#4A4A7A" stroke-width="0.5" opacity="0.3"/>
+  <rect id="l2s1" x="390" y="126" width="100" height="22" rx="3" fill="#2A2A4A" stroke="#4A4A7A" stroke-width="0.5" opacity="0.3"/>
+  <rect id="l2s2" x="390" y="152" width="100" height="22" rx="3" fill="#2A2A4A" stroke="#4A4A7A" stroke-width="0.5" opacity="0.3"/>
+  <rect id="l2s3" x="390" y="178" width="100" height="22" rx="3" fill="#2A2A4A" stroke="#4A4A7A" stroke-width="0.5" opacity="0.3"/>
+  <rect id="l2s4" x="390" y="204" width="100" height="22" rx="3" fill="#2A2A4A" stroke="#4A4A7A" stroke-width="0.5" opacity="0.3"/>
+  <text id="l2t0" x="440" y="115" text-anchor="middle" font-size="9" fill="#5A5A8A" font-family="var(--font-mono,monospace)">—</text>
+  <text id="l2t1" x="440" y="141" text-anchor="middle" font-size="9" fill="#5A5A8A" font-family="var(--font-mono,monospace)">—</text>
+  <text id="l2t2" x="440" y="167" text-anchor="middle" font-size="9" fill="#5A5A8A" font-family="var(--font-mono,monospace)">—</text>
+  <text id="l2t3" x="440" y="193" text-anchor="middle" font-size="9" fill="#5A5A8A" font-family="var(--font-mono,monospace)">—</text>
+  <text id="l2t4" x="440" y="219" text-anchor="middle" font-size="9" fill="#5A5A8A" font-family="var(--font-mono,monospace)">—</text>
+  <text x="440" y="245" text-anchor="middle" font-size="9" fill="#4A4A7A" font-family="var(--font-mono,monospace)">holds ~1,600 tiles</text>
+
+  <!-- ── L1 SRAM (right) ── -->
+  <rect x="536" y="90" width="126" height="100" rx="8" fill="#1E3A2E" stroke="#3A7A5A" stroke-width="1" id="l1-box"/>
+  <text x="599" y="108" text-anchor="middle" font-size="10" font-weight="500" fill="#5ABA8A" font-family="var(--font-mono,monospace)">L1 SRAM</text>
+  <text x="599" y="122" text-anchor="middle" font-size="9" fill="#3A8A6A" font-family="var(--font-mono,monospace)">256 KB / SM</text>
+  <rect id="l1s0" x="546" y="130" width="106" height="20" rx="3" fill="#2A4A3A" stroke="#3A7A5A" stroke-width="0.5" opacity="0.3"/>
+  <rect id="l1s1" x="546" y="154" width="106" height="20" rx="3" fill="#2A4A3A" stroke="#3A7A5A" stroke-width="0.5" opacity="0.3"/>
+  <text id="l1t0" x="599" y="144" text-anchor="middle" font-size="9" fill="#3A6A5A" font-family="var(--font-mono,monospace)">—</text>
+  <text id="l1t1" x="599" y="168" text-anchor="middle" font-size="9" fill="#3A6A5A" font-family="var(--font-mono,monospace)">—</text>
+  <text x="599" y="182" text-anchor="middle" font-size="8" fill="#2A5A4A" font-family="var(--font-mono,monospace)">holds ~16 tiles</text>
+
+  <!-- ── TENSOR CORE ── -->
+  <rect x="536" y="218" width="126" height="44" rx="6" fill="#1E2A50" stroke="#4A6AFF" stroke-width="1" id="tc-box"/>
+  <text x="599" y="235" text-anchor="middle" font-size="10" font-weight="500" fill="#8AABFF" font-family="var(--font-mono,monospace)">Tensor core</text>
+  <text x="599" y="250" text-anchor="middle" font-size="9" fill="#5A7ADA" font-family="var(--font-mono,monospace)" id="tc-status">waiting…</text>
+
+  <!-- ── DONE counter ── -->
+  <text x="170" y="268" text-anchor="middle" font-size="10" fill="#3A8A3A" font-family="var(--font-mono,monospace)" id="done-label"></text>
+
+  <!-- ── FLYING TILE particle ── -->
+  <rect id="fly-tile" x="-60" y="-60" width="38" height="22" rx="3" fill="#5A9ADA" opacity="0" stroke="#8AABFF" stroke-width="0.8"/>
+  <text id="fly-text" x="-40" y="-45" text-anchor="middle" font-size="8" fill="#FFFFFF" font-family="var(--font-mono,monospace)" opacity="0">tile</text>
+</svg>
+
+<div class="stepper" id="stepper"></div>
+
+<div class="info-card" id="info-card">
+  <div class="ic-title" id="ic-title">How does 512 MB fit through a 256 KB cache?</div>
+  <div class="ic-body" id="ic-body">Press Next to see the tiling process step by step. Spoiler: it doesn't "fit." It streams.</div>
+</div>
+
+<div class="nav-row">
+  <button class="btn" id="btn-prev" onclick="go(-1)" disabled>← Prev</button>
+  <button class="btn primary" id="btn-next" onclick="go(1)">Next →</button>
+  <button class="btn" onclick="reset()">↺</button>
+  <span class="ctr" id="ctr">0 / 6</span>
+</div>
+
+</div>
+
+<script>
+// ── build matrix grid ──
+const COLS=8, ROWS=10, TW=38, TH=24, GAP=2, OX=10, OY=30;
+const totalTiles = COLS*ROWS;
+const grid = document.getElementById('matrix-grid');
+const tileEls = [];
+for(let r=0;r<ROWS;r++){
+  for(let c=0;c<COLS;c++){
+    const i=r*COLS+c;
+    const x=OX+c*(TW+GAP), y=OY+r*(TH+GAP);
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',x); rect.setAttribute('y',y);
+    rect.setAttribute('width',TW); rect.setAttribute('height',TH);
+    rect.setAttribute('rx','2');
+    rect.setAttribute('fill','#1A2E4A');
+    rect.setAttribute('stroke','#2E5A8A');
+    rect.setAttribute('stroke-width','0.5');
+    grid.appendChild(rect);
+    const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',x+TW/2); txt.setAttribute('y',y+TH/2+1);
+    txt.setAttribute('text-anchor','middle');
+    txt.setAttribute('dominant-baseline','central');
+    txt.setAttribute('font-size','7');
+    txt.setAttribute('fill','#3A6A9A');
+    txt.setAttribute('font-family','var(--font-mono,monospace)');
+    txt.textContent='T'+(i+1);
+    grid.appendChild(txt);
+    tileEls.push({rect,txt,x,y});
+  }
+}
+
+const steps=[
+  {
+    label:'The matrix',
+    title:'The full weight matrix — 32 MB sitting in HBM',
+    body:'Layer 1\'s weight matrix is 4096 rows × 4096 columns of BF16 numbers. 4096 × 4096 × 2 bytes = 32 MB. (Our earlier "512 MB" example was for a larger model — same principle.) It sits in HBM. The GPU cannot process it all at once — neither L2 nor L1 is big enough. So it is sliced into tiles.',
+    active:[],  l2:[], l1:[], tcStatus:'waiting…', done:''
+  },
+  {
+    label:'Slice into tiles',
+    title:'The GPU slices the matrix into tiles — each tile fits in L1',
+    body:'The GPU\'s warp scheduler divides the matrix into tiles — e.g. 64 × 32 floats each (64 rows × 32 cols × 2 bytes = 4 KB). A 32 MB matrix becomes ~8,000 such tiles. The L1 SRAM is 256 KB so it can hold about 64 tiles at once. L2 at 50 MB can buffer ~12,000 tiles. Processing is tile-by-tile, not all-at-once.',
+    active:[0,1,2,3,4,5,6,7], l2:[], l1:[], tcStatus:'waiting…', done:''
+  },
+  {
+    label:'HBM → L2',
+    title:'Tile T1 streams from HBM into L2 cache',
+    body:'The memory controller fetches tile T1 from HBM and places it in L2. This uses maybe 4 KB of L2\'s 50 MB. Meanwhile the memory controller is already prefetching T2, T3 … in the background. L2 acts as a staging buffer — it can hold many tiles while the SM works through them one at a time.',
+    active:[0], l2:['T1 (4 KB)','T2 (pref.)','—','—','—'], l1:[], tcStatus:'waiting…', done:''
+  },
+  {
+    label:'L2 → L1',
+    title:'Tile T1 moves from L2 into the SM\'s L1 SRAM',
+    body:'SM 0\'s scheduler pulls T1 from L2 into its 256 KB L1 SRAM. L2 still holds T1 (it\'s not evicted yet — other SMs might need it too). The critical insight: only 4 KB of L1 is occupied. The GPU operates on just this tile right now — the other 32 MB of weights are still in HBM.',
+    active:[0], l2:['T1 (4 KB)','T2 (pref.)','T3 (pref.)','—','—'], l1:['T1 (4 KB)','—'], tcStatus:'waiting…', done:''
+  },
+  {
+    label:'Compute',
+    title:'Tensor core multiplies using T1, then T1 is evicted',
+    body:'The Tensor core reads T1 from L1 SRAM and performs the matrix multiply for this tile — accumulating partial results into registers. Once done, T1 is evicted from L1. T2 (already prefetched into L2) immediately loads into L1. This evict-load-compute cycle repeats for all 8,000 tiles. The cache is a revolving door, not a warehouse.',
+    active:[0,1], l2:['T2 (4 KB)','T3 (pref.)','T4 (pref.)','—','—'], l1:['T2 (4 KB)','—'], tcStatus:'computing T1 ✓', done:'1 / ~8000 tiles done'
+  },
+  {
+    label:'Full pass',
+    title:'After ~8,000 tile passes — the whole matrix has been processed',
+    body:'Every tile has passed through L1, been computed on, and been evicted. The total data moved = 32 MB from HBM (each byte read once). At 3.35 TB/s, that takes about 10 microseconds. At no point did more than 256 KB live in L1 simultaneously. This is why HBM bandwidth — not HBM capacity — determines decode speed: it\'s a continuous stream, not a bulk load.',
+    active:'all', l2:['T7999','T8000','done','done','done'], l1:['T8000','done'], tcStatus:'all tiles done ✓', done:'~8000 / ~8000 tiles ✓'
+  }
+];
+
+let cur=-1;
+
+function setTileColors(active){
+  tileEls.forEach(({rect,txt},i)=>{
+    const isActive = active==='all' || (Array.isArray(active) && active.includes(i));
+    rect.setAttribute('fill', isActive ? '#1E3D6E' : '#1A2E4A');
+    rect.setAttribute('stroke', isActive ? '#5A9ADA' : '#2E5A8A');
+    txt.setAttribute('fill', isActive ? '#8AABFF' : '#3A6A9A');
+    if(active==='all'){
+      rect.setAttribute('fill','#1A3A5A');
+      rect.setAttribute('stroke','#3A7AAA');
+    }
+  });
+}
+
+function setL2(slots){
+  const labels=['l2t0','l2t1','l2t2','l2t3','l2t4'];
+  const rects=['l2s0','l2s1','l2s2','l2s3','l2s4'];
+  labels.forEach((id,i)=>{
+    const txt=document.getElementById(id);
+    const rect=document.getElementById(rects[i]);
+    const val=slots[i]||'—';
+    txt.textContent=val;
+    const filled=val!=='—';
+    rect.setAttribute('opacity',filled?'1':'0.3');
+    rect.setAttribute('fill',filled?'#2A2A5A':'#2A2A4A');
+    rect.setAttribute('stroke',filled?'#6A6ABA':'#4A4A7A');
+    txt.setAttribute('fill',filled?'#9A9AFF':'#5A5A8A');
+  });
+}
+
+function setL1(slots){
+  const labels=['l1t0','l1t1'];
+  const rects=['l1s0','l1s1'];
+  labels.forEach((id,i)=>{
+    const txt=document.getElementById(id);
+    const rect=document.getElementById(rects[i]);
+    const val=slots[i]||'—';
+    txt.textContent=val;
+    const filled=val!=='—';
+    rect.setAttribute('opacity',filled?'1':'0.3');
+    rect.setAttribute('fill',filled?'#2A5A3A':'#2A4A3A');
+    rect.setAttribute('stroke',filled?'#5ABA8A':'#3A7A5A');
+    txt.setAttribute('fill',filled?'#8AFFC0':'#3A6A5A');
+  });
+}
+
+function render(idx){
+  if(idx<0||idx>=steps.length)return;
+  cur=idx;
+  const s=steps[idx];
+  setTileColors(s.active);
+  setL2(s.l2.length?s.l2:['—','—','—','—','—']);
+  setL1(s.l1.length?s.l1:['—','—']);
+  document.getElementById('tc-status').textContent=s.tcStatus;
+  document.getElementById('done-label').textContent=s.done;
+  document.getElementById('ic-title').textContent=s.title;
+  document.getElementById('ic-body').textContent=s.body;
+  document.getElementById('btn-prev').disabled=cur<=0;
+  document.getElementById('btn-next').disabled=cur>=steps.length-1;
+  document.getElementById('ctr').textContent=(cur+1)+' / '+steps.length;
+  renderStepper();
+}
+
+function go(d){render(cur+d);}
+
+function reset(){
+  setTileColors([]);
+  setL2(['—','—','—','—','—']);
+  setL1(['—','—']);
+  document.getElementById('tc-status').textContent='waiting…';
+  document.getElementById('done-label').textContent='';
+  document.getElementById('ic-title').textContent='How does 512 MB fit through a 256 KB cache?';
+  document.getElementById('ic-body').textContent='Press Next to see the tiling process step by step. Spoiler: it doesn\'t "fit." It streams.';
+  cur=-1;
+  document.getElementById('btn-prev').disabled=true;
+  document.getElementById('btn-next').disabled=false;
+  document.getElementById('ctr').textContent='0 / '+steps.length;
+  renderStepper();
+}
+
+function renderStepper(){
+  const el=document.getElementById('stepper');
+  el.innerHTML=steps.map((s,i)=>{
+    const st=i<cur?'done':i===cur?'active':'';
+    const num=i<cur?'✓':i+1;
+    return`<button class="step-btn ${st}" onclick="render(${i})"><span class="step-num">${num}</span><span class="step-label">${s.label}</span></button>${i<steps.length-1?'<div class="step-divider"></div>':''}`;
+  }).join('');
+}
+
+renderStepper();
+</script>

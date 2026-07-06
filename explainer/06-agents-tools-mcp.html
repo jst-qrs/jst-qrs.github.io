@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agents, Tools & MCP</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+:root {
+  --bg: #07090F;
+  --s1: #0D1220;
+  --s2: #111827;
+  --border: #1C2A42;
+  --border2: #243550;
+  --text: #D8E8F4;
+  --muted: #4A6480;
+  --dim: #2A3A50;
+  --cyan: #00E5FF;
+  --purple: #7B61FF;
+  --orange: #FF7A3D;
+  --green: #00D68F;
+  --yellow: #FFD166;
+  --red: #FF5A5A;
+  --pink: #FF61DC;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+/* NAV TABS */
+header{padding:32px 32px 0}
+.eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:10px}
+h1{font-size:clamp(22px,4vw,38px);font-weight:700;letter-spacing:-0.5px;line-height:1.1}
+h1 em{color:var(--cyan);font-style:normal}
+.subtitle{font-size:13px;color:var(--muted);margin-top:8px;max-width:520px;line-height:1.6}
+nav{display:flex;gap:2px;padding:20px 32px 0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+.tab{padding:8px 16px;border-radius:6px 6px 0 0;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;border:1px solid transparent;border-bottom:none;color:var(--muted);background:transparent;font-family:'Space Grotesk',sans-serif;transition:all .2s;margin-bottom:-1px}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--s1);border-color:var(--border);color:var(--cyan)}
+.panel{display:none;padding:28px 32px 40px}
+.panel.active{display:block}
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:12px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.card-body{font-size:13px;color:#8AAAC0;line-height:1.65}
+.mono{font-family:'Space Mono',monospace}
+.pill{display:inline-block;font-family:'Space Mono',monospace;font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid;margin:3px 3px 0 0}
+/* SECTION LABEL */
+.slabel{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+h2{font-size:18px;font-weight:600;margin-bottom:14px}
+/* STEPPER */
+.stepper{display:flex;gap:0;align-items:center;margin:16px 0 10px;overflow-x:auto;scrollbar-width:none}
+.stepper::-webkit-scrollbar{display:none}
+.sbtn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;padding:0 5px;opacity:.35;transition:opacity .2s}
+.sbtn.active{opacity:1}.sbtn.done{opacity:.6}
+.snum{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--muted);background:var(--s1);transition:all .2s}
+.sbtn.active .snum{background:var(--cyan);color:#000;border-color:var(--cyan)}
+.sbtn.done .snum{background:var(--green);border-color:var(--green);color:#000;font-size:9px}
+.slbl{font-size:9px;color:var(--muted);white-space:nowrap;text-align:center;max-width:70px;line-height:1.3}
+.sbtn.active .slbl{color:var(--text)}
+.sdiv{width:16px;height:1px;background:var(--border);flex-shrink:0;margin-bottom:12px}
+/* INFO CARD */
+.icard{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-top:10px;min-height:86px}
+.ititle{font-size:14px;font-weight:600;margin-bottom:5px}
+.ibody{font-size:13px;color:#8AAAC0;line-height:1.65}
+/* NAV ROW */
+.navrow{display:flex;gap:8px;margin-top:10px;align-items:center}
+.btn{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--s1);color:var(--text);font-family:'Space Grotesk',sans-serif;transition:all .15s}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.pr{background:var(--cyan);color:#000;border-color:var(--cyan)}
+.btn.pr:hover{opacity:.85}
+.btn:disabled{opacity:.25;cursor:not-allowed}
+.ctr{font-size:11px;color:var(--muted);margin-left:auto;font-family:'Space Mono',monospace}
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:580px){.grid2,.grid3{grid-template-columns:1fr}}
+svg{display:block;width:100%}
+
+/* LOOP ANIMATION */
+@keyframes spin{from{stroke-dashoffset:200}to{stroke-dashoffset:0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 rgba(0,229,255,0)}50%{box-shadow:0 0 12px rgba(0,229,255,.3)}}
+.pulsing{animation:pulse 2s infinite}
+
+/* TOOL CARDS */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:16px}
+.tool-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:border-color .2s;cursor:default}
+.tool-card:hover{border-color:var(--border2)}
+.tool-icon{font-size:20px;margin-bottom:8px}
+.tool-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.tool-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.tool-sig{font-family:'Space Mono',monospace;font-size:10px;color:var(--purple);margin-top:8px;background:rgba(123,97,255,.08);border:1px solid rgba(123,97,255,.2);border-radius:4px;padding:4px 7px}
+
+/* MCP DIAGRAM */
+.mcp-row{display:flex;align-items:stretch;gap:0;margin:20px 0}
+.mcp-box{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:14px 16px;flex:1}
+.mcp-arrow{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;padding:0 8px;flex-shrink:0}
+.mcp-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.mcp-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.mcp-proto{font-family:'Space Mono',monospace;font-size:10px;margin-top:8px;padding:4px 8px;border-radius:4px}
+
+/* AGENTIC LOOP SVG labels */
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">AI Systems · Part 4</div>
+  <h1>Agents, <em>Tools</em> & MCP</h1>
+  <p class="subtitle">How a model breaks out of the context window, takes actions in the world, and why MCP exists as a standardisation layer.</p>
+</header>
+
+<nav>
+  <button class="tab active" onclick="switchTab('loop')">① The agent loop</button>
+  <button class="tab" onclick="switchTab('tools')">② Tools</button>
+  <button class="tab" onclick="switchTab('context')">③ Context & memory</button>
+  <button class="tab" onclick="switchTab('mcp')">④ MCP protocol</button>
+  <button class="tab" onclick="switchTab('full')">⑤ Full picture</button>
+</nav>
+
+<!-- ═══════════════════════════════
+     PANEL 1 — THE AGENT LOOP
+════════════════════════════════ -->
+<div class="panel active" id="panel-loop">
+
+  <div class="card">
+    <div class="card-title">What makes something an "agent"?</div>
+    <div class="card-body">A plain LLM call is one-shot: prompt in, tokens out, done. An <strong>agent</strong> is when you put the model in a loop — it can decide to take an action (call a tool, search, run code), observe the result, and then continue reasoning. The model drives the loop. It decides when to use tools, which tool, with what inputs, and when it has enough information to stop and give a final answer.</div>
+  </div>
+
+  <div class="stepper" id="loop-stepper"></div>
+
+  <svg id="loop-svg" viewBox="0 0 680 380" role="img">
+    <title>Agent reasoning loop</title>
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- ── LOOP BACKGROUND CIRCLE ── -->
+    <circle cx="340" cy="190" r="130" fill="none" stroke="#1C2A42" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+    <!-- ── 5 NODES around the loop ── -->
+    <!-- 1: User task (top) -->
+    <g id="ln-task">
+      <rect x="270" y="22" width="140" height="46" rx="8" fill="#1E2A50" stroke="#4A6AFF" stroke-width="1" id="lnr-task"/>
+      <text x="340" y="42" text-anchor="middle" font-size="11" font-weight="600" fill="#8AABFF" font-family="Space Grotesk,sans-serif">User task</text>
+      <text x="340" y="58" text-anchor="middle" font-size="10" fill="#5A7ADA" font-family="Space Mono,monospace">"Book me a flight to Sydney"</text>
+    </g>
+
+    <!-- 2: LLM Reasoning (right) -->
+    <g id="ln-reason">
+      <rect x="530" y="148" width="136" height="74" rx="8" fill="#1C1C2E" stroke="#7B61FF" stroke-width="1" id="lnr-reason"/>
+      <text x="598" y="170" text-anchor="middle" font-size="11" font-weight="600" fill="#A090FF" font-family="Space Grotesk,sans-serif">LLM Reasoning</text>
+      <text x="598" y="186" text-anchor="middle" font-size="10" fill="#6A5ADA" font-family="Space Mono,monospace">Think → decide</text>
+      <text x="598" y="200" text-anchor="middle" font-size="10" fill="#6A5ADA" font-family="Space Mono,monospace">which tool to use</text>
+      <text x="598" y="214" text-anchor="middle" font-size="10" fill="#5A4ABA" font-family="Space Mono,monospace">+ what args</text>
+    </g>
+
+    <!-- 3: Tool call (bottom-right) -->
+    <g id="ln-call">
+      <rect x="460" y="288" width="136" height="60" rx="8" fill="#1E1A2E" stroke="#FF7A3D" stroke-width="1" id="lnr-call"/>
+      <text x="528" y="312" text-anchor="middle" font-size="11" font-weight="600" fill="#FF9A6A" font-family="Space Grotesk,sans-serif">Tool call</text>
+      <text x="528" y="328" text-anchor="middle" font-size="10" fill="#C06A40" font-family="Space Mono,monospace">search_flights(SYD)</text>
+      <text x="528" y="342" text-anchor="middle" font-size="10" fill="#C06A40" font-family="Space Mono,monospace">→ external API</text>
+    </g>
+
+    <!-- 4: Observation (bottom-left) -->
+    <g id="ln-obs">
+      <rect x="82" y="288" width="136" height="60" rx="8" fill="#1A2E1A" stroke="#00D68F" stroke-width="1" id="lnr-obs"/>
+      <text x="150" y="312" text-anchor="middle" font-size="11" font-weight="600" fill="#5ADA9A" font-family="Space Grotesk,sans-serif">Observation</text>
+      <text x="150" y="328" text-anchor="middle" font-size="10" fill="#3A9A6A" font-family="Space Mono,monospace">tool result injected</text>
+      <text x="150" y="342" text-anchor="middle" font-size="10" fill="#3A9A6A" font-family="Space Mono,monospace">into context window</text>
+    </g>
+
+    <!-- 5: Check done? (left) -->
+    <g id="ln-done">
+      <rect x="14" y="148" width="136" height="74" rx="8" fill="#1E2A1A" stroke="#00E5FF" stroke-width="1" id="lnr-done"/>
+      <text x="82" y="170" text-anchor="middle" font-size="11" font-weight="600" fill="#00E5FF" font-family="Space Grotesk,sans-serif">Done?</text>
+      <text x="82" y="186" text-anchor="middle" font-size="10" fill="#3ABAAA" font-family="Space Mono,monospace">enough info → yes</text>
+      <text x="82" y="200" text-anchor="middle" font-size="10" fill="#3ABAAA" font-family="Space Mono,monospace">need more → loop</text>
+      <text x="82" y="214" text-anchor="middle" font-size="10" fill="#2A8A7A" font-family="Space Mono,monospace">back to reasoning</text>
+    </g>
+
+    <!-- ── ARROWS between nodes ── -->
+    <!-- task → reason -->
+    <path d="M 410 45 Q 598 45 598 148" fill="none" stroke="#4A5ABA" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar)" id="larr-tr" opacity="0.3"/>
+    <!-- reason → call -->
+    <path d="M 598 222 Q 598 290 596 288" fill="none" stroke="#CC6A40" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar)" id="larr-rc" opacity="0.3"/>
+    <!-- call → obs -->
+    <path d="M 460 318 L 218 318" fill="none" stroke="#40AA70" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar)" id="larr-co" opacity="0.3"/>
+    <!-- obs → done -->
+    <path d="M 150 288 Q 150 240 82 222" fill="none" stroke="#00BBCC" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar)" id="larr-od" opacity="0.3"/>
+    <!-- done → reason (the loop-back) -->
+    <path d="M 150 185 Q 340 120 530 185" fill="none" stroke="#7B61FF" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar)" id="larr-dr" opacity="0.3"/>
+    <!-- done → output (exit) -->
+    <path d="M 14 185 L 14 360 Q 14 375 30 375 L 650 375 Q 666 375 666 360 L 666 120 Q 666 68 650 68 L 410 68" fill="none" stroke="#00D68F" stroke-width="0" id="larr-exit" opacity="0"/>
+
+    <!-- output box (only shown at end) -->
+    <rect x="220" y="358" width="240" height="16" rx="4" fill="#1A3A1A" stroke="#00D68F" stroke-width="0.6" id="out-box" opacity="0"/>
+    <text x="340" y="370" text-anchor="middle" font-size="9" fill="#00D68F" font-family="Space Mono,monospace" id="out-text" opacity="0">Final answer delivered to user ✓</text>
+
+    <!-- iteration counter -->
+    <text x="340" y="190" text-anchor="middle" font-size="11" fill="#2A3A50" font-family="Space Mono,monospace" id="iter-label">agent loop</text>
+    <text x="340" y="208" text-anchor="middle" font-size="28" font-weight="700" fill="#1C2A42" font-family="Space Mono,monospace" id="iter-num">⟳</text>
+
+    <!-- context window note -->
+    <text x="340" y="140" text-anchor="middle" font-size="9" fill="#2A3A50" font-family="Space Mono,monospace">every observation →</text>
+    <text x="340" y="153" text-anchor="middle" font-size="9" fill="#2A3A50" font-family="Space Mono,monospace">appended to context</text>
+  </svg>
+
+  <div class="icard" id="loop-icard">
+    <div class="ititle" id="loop-ititle">The agent reasoning loop</div>
+    <div class="ibody" id="loop-ibody">An agent is just an LLM in a loop with tools. Press Next to walk through one full turn — the model reasoning, picking a tool, getting a result, and deciding whether it's done.</div>
+  </div>
+  <div class="navrow">
+    <button class="btn" id="loop-prev" onclick="loopGo(-1)" disabled>← Prev</button>
+    <button class="btn pr" id="loop-next" onclick="loopGo(1)">Next →</button>
+    <button class="btn" onclick="loopReset()">↺</button>
+    <span class="ctr" id="loop-ctr">0 / 6</span>
+  </div>
+
+  <div class="card" style="margin-top:20px;border-color:rgba(123,97,255,.3)">
+    <div class="card-title">The key insight: the context window IS the agent's working memory</div>
+    <div class="card-body">Every tool call and its result gets appended to the context window as new tokens. The model doesn't have a separate "state" — everything it knows about what has happened lives in the growing token sequence. This is why long agentic tasks consume enormous context: 10 tool calls × average 500 tokens each = 5,000 tokens of "memory" just from the actions taken so far.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     PANEL 2 — TOOLS
+════════════════════════════════ -->
+<div class="panel" id="panel-tools">
+
+  <div class="card">
+    <div class="card-title">What is a tool, exactly?</div>
+    <div class="card-body">A tool is a function the model is allowed to call. Before inference, the API sends the model a list of available tools — their names, descriptions, and parameter schemas. When the model decides to use one, it emits a structured JSON object (a tool call) instead of plain text. The host application intercepts that, runs the real function, and feeds the result back as a new message. The model never directly runs code or hits the internet — it asks, and the application does.</div>
+  </div>
+
+  <div class="card" style="border-color:rgba(123,97,255,.25)">
+    <div class="card-title mono" style="font-size:12px;color:var(--purple)">// How the model "sees" a tool — it's just a JSON schema in its context</div>
+    <div style="background:var(--bg);border-radius:6px;padding:14px;margin-top:8px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.7;color:#8AAAC0;">
+      <span style="color:#4A6480">{</span><br>
+      &nbsp;&nbsp;<span style="color:#FFD166">"name"</span>: <span style="color:#00D68F">"search_flights"</span>,<br>
+      &nbsp;&nbsp;<span style="color:#FFD166">"description"</span>: <span style="color:#00D68F">"Search for available flights between two cities on a date"</span>,<br>
+      &nbsp;&nbsp;<span style="color:#FFD166">"parameters"</span>: <span style="color:#4A6480">{</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FFD166">"origin"</span>: <span style="color:#4A6480">{ "type": "string" }</span>,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FFD166">"destination"</span>: <span style="color:#4A6480">{ "type": "string" }</span>,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FFD166">"date"</span>: <span style="color:#4A6480">{ "type": "string", "format": "date" }</span><br>
+      &nbsp;&nbsp;<span style="color:#4A6480">}</span><br>
+      <span style="color:#4A6480">}</span>
+    </div>
+    <div class="card-body" style="margin-top:10px;font-size:12px;">The description field is critical — the model reads it to decide <em>when</em> to use this tool. A well-written description is as important as the function itself.</div>
+  </div>
+
+  <div class="slabel" style="margin-top:20px">Tool categories</div>
+  <div class="tool-grid">
+    <div class="tool-card">
+      <div class="tool-icon">🔍</div>
+      <div class="tool-name">Search / retrieval</div>
+      <div class="tool-desc">Web search, vector DB lookup, SQL query. Lets the model access information beyond its training cutoff or internal knowledge.</div>
+      <div class="tool-sig">web_search(query: str)</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">💻</div>
+      <div class="tool-name">Code execution</div>
+      <div class="tool-desc">Run Python, bash, JS in a sandbox. Model writes code, executes it, reads the output — iterating until the task is done.</div>
+      <div class="tool-sig">run_code(lang, code: str)</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">📁</div>
+      <div class="tool-name">File system</div>
+      <div class="tool-desc">Read, write, list, delete files. Lets agents work with documents, configs, and data files as part of a longer task.</div>
+      <div class="tool-sig">read_file(path: str)</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">🌐</div>
+      <div class="tool-name">HTTP / APIs</div>
+      <div class="tool-desc">Call any REST endpoint. Book a flight, send an email, post to Slack, query a database — anything with an API.</div>
+      <div class="tool-sig">http_request(url, method)</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">🖥️</div>
+      <div class="tool-name">Computer use</div>
+      <div class="tool-desc">Take screenshots, click, type, navigate browsers. The model operates a real desktop UI like a human would.</div>
+      <div class="tool-sig">screenshot() / click(x,y)</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">🤖</div>
+      <div class="tool-name">Sub-agents</div>
+      <div class="tool-desc">Spawn another agent as a tool call. Multi-agent systems: an orchestrator delegates subtasks to specialist agents.</div>
+      <div class="tool-sig">delegate(agent_id, task)</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-title">What the model actually emits when calling a tool</div>
+    <div style="background:var(--bg);border-radius:6px;padding:14px;margin-top:8px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.7;color:#8AAAC0;">
+      <span style="color:var(--muted)">// Model output (not shown to user — intercepted by the app)</span><br>
+      <span style="color:#4A6480">{</span><br>
+      &nbsp;&nbsp;<span style="color:#FFD166">"type"</span>: <span style="color:#00D68F">"tool_use"</span>,<br>
+      &nbsp;&nbsp;<span style="color:#FFD166">"name"</span>: <span style="color:#00D68F">"search_flights"</span>,<br>
+      &nbsp;&nbsp;<span style="color:#FFD166">"input"</span>: <span style="color:#4A6480">{</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FFD166">"origin"</span>: <span style="color:#00D68F">"MEL"</span>,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FFD166">"destination"</span>: <span style="color:#00D68F">"SYD"</span>,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FFD166">"date"</span>: <span style="color:#00D68F">"2025-08-15"</span><br>
+      &nbsp;&nbsp;<span style="color:#4A6480">}</span><br>
+      <span style="color:#4A6480">}</span><br>
+      <br>
+      <span style="color:var(--muted)">// App runs the real function, feeds result back as:</span><br>
+      <span style="color:#4A6480">{</span><br>
+      &nbsp;&nbsp;<span style="color:#FFD166">"type"</span>: <span style="color:#00D68F">"tool_result"</span>,<br>
+      &nbsp;&nbsp;<span style="color:#FFD166">"content"</span>: <span style="color:#00D68F">"[{flight: QF400, dep: 07:00, price: $189}, ...]"</span><br>
+      <span style="color:#4A6480">}</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     PANEL 3 — CONTEXT & MEMORY
+════════════════════════════════ -->
+<div class="panel" id="panel-context">
+
+  <div class="card">
+    <div class="card-title">The context window fills up as the agent works</div>
+    <div class="card-body">Each turn of the loop appends more tokens. The context window is the agent's only working memory — there is no hidden state. When the context fills up, the agent can't fit more history and must either summarise, truncate, or use external memory tools.</div>
+  </div>
+
+  <svg viewBox="0 0 680 240" role="img">
+    <title>Context window growth during agent loop</title>
+    <!-- Turn 0 -->
+    <text x="10" y="18" font-size="9" fill="#4A6480" font-family="Space Mono,monospace">TURN 0 — initial prompt</text>
+    <rect x="10" y="24" width="660" height="22" rx="4" fill="#12121E" stroke="#1C2A42" stroke-width="0.8"/>
+    <rect x="10" y="24" width="80" height="22" rx="4" fill="#1E2A50" stroke="none"/>
+    <rect x="90" y="24" width="120" height="22" rx="0" fill="#1A2E1A" stroke="none"/>
+    <rect x="210" y="24" width="60" height="22" rx="4" fill="#2E2A1A" stroke="none"/>
+    <text x="50"  y="39" text-anchor="middle" font-size="8" fill="#5A7ADA" font-family="Space Mono,monospace">system</text>
+    <text x="150" y="39" text-anchor="middle" font-size="8" fill="#5A8A5A" font-family="Space Mono,monospace">task: book a flight</text>
+    <text x="240" y="39" text-anchor="middle" font-size="8" fill="#8A8A4A" font-family="Space Mono,monospace">query</text>
+    <text x="450" y="39" text-anchor="middle" font-size="8" fill="#2A3A50" font-family="Space Mono,monospace">available</text>
+
+    <!-- Turn 1 -->
+    <text x="10" y="72" font-size="9" fill="#4A6480" font-family="Space Mono,monospace">TURN 1 — after first tool call (search_flights)</text>
+    <rect x="10" y="78" width="660" height="22" rx="4" fill="#12121E" stroke="#1C2A42" stroke-width="0.8"/>
+    <rect x="10" y="78" width="80" height="22" rx="4" fill="#1E2A50" stroke="none"/>
+    <rect x="90" y="78" width="120" height="22" rx="0" fill="#1A2E1A" stroke="none"/>
+    <rect x="210" y="78" width="60" height="22" rx="0" fill="#2E2A1A" stroke="none"/>
+    <rect x="270" y="78" width="80" height="22" rx="0" fill="#2A1A10" stroke="none"/><!-- tool_use -->
+    <rect x="350" y="78" width="160" height="22" rx="0" fill="#10281A" stroke="none"/><!-- tool_result -->
+    <text x="50"  y="93" text-anchor="middle" font-size="8" fill="#5A7ADA" font-family="Space Mono,monospace">system</text>
+    <text x="150" y="93" text-anchor="middle" font-size="8" fill="#5A8A5A" font-family="Space Mono,monospace">task</text>
+    <text x="240" y="93" text-anchor="middle" font-size="8" fill="#8A8A4A" font-family="Space Mono,monospace">query</text>
+    <text x="310" y="93" text-anchor="middle" font-size="8" fill="#FF7A3D" font-family="Space Mono,monospace">tool_use</text>
+    <text x="430" y="93" text-anchor="middle" font-size="8" fill="#00D68F" font-family="Space Mono,monospace">tool_result: flights list</text>
+    <text x="580" y="93" text-anchor="middle" font-size="8" fill="#2A3A50" font-family="Space Mono,monospace">available</text>
+
+    <!-- Turn 2 -->
+    <text x="10" y="126" font-size="9" fill="#4A6480" font-family="Space Mono,monospace">TURN 2 — after second tool call (check_price)</text>
+    <rect x="10" y="132" width="660" height="22" rx="4" fill="#12121E" stroke="#1C2A42" stroke-width="0.8"/>
+    <rect x="10"  y="132" width="80"  height="22" rx="4" fill="#1E2A50" stroke="none"/>
+    <rect x="90"  y="132" width="120" height="22" rx="0" fill="#1A2E1A" stroke="none"/>
+    <rect x="210" y="132" width="60"  height="22" rx="0" fill="#2E2A1A" stroke="none"/>
+    <rect x="270" y="132" width="80"  height="22" rx="0" fill="#2A1A10" stroke="none"/>
+    <rect x="350" y="132" width="160" height="22" rx="0" fill="#10281A" stroke="none"/>
+    <rect x="510" y="132" width="60"  height="22" rx="0" fill="#2A1820" stroke="none"/><!-- tool_use 2 -->
+    <rect x="570" y="132" width="90"  height="22" rx="4" fill="#102218" stroke="none"/><!-- tool_result 2 -->
+    <text x="50"  y="147" text-anchor="middle" font-size="8" fill="#5A7ADA" font-family="Space Mono,monospace">sys</text>
+    <text x="150" y="147" text-anchor="middle" font-size="8" fill="#5A8A5A" font-family="Space Mono,monospace">task</text>
+    <text x="240" y="147" text-anchor="middle" font-size="8" fill="#8A8A4A" font-family="Space Mono,monospace">q</text>
+    <text x="310" y="147" text-anchor="middle" font-size="8" fill="#FF7A3D" font-family="Space Mono,monospace">t_use</text>
+    <text x="430" y="147" text-anchor="middle" font-size="8" fill="#00D68F" font-family="Space Mono,monospace">t_result (flights)</text>
+    <text x="540" y="147" text-anchor="middle" font-size="8" fill="#FF7A3D" font-family="Space Mono,monospace">t_use2</text>
+    <text x="615" y="147" text-anchor="middle" font-size="8" fill="#00D68F" font-family="Space Mono,monospace">price ✓</text>
+
+    <!-- context full warning -->
+    <text x="10" y="183" font-size="9" fill="#FF5A5A" font-family="Space Mono,monospace">If this keeps growing...</text>
+    <rect x="10" y="189" width="660" height="22" rx="4" fill="#1A0A0A" stroke="#FF5A5A" stroke-width="0.8"/>
+    <rect x="10"  y="189" width="80"  height="22" rx="4" fill="#1E2A50" stroke="none"/>
+    <rect x="90"  y="189" width="120" height="22" rx="0" fill="#1A2E1A" stroke="none"/>
+    <rect x="210" y="189" width="60"  height="22" rx="0" fill="#2E2A1A" stroke="none"/>
+    <rect x="270" y="189" width="80"  height="22" rx="0" fill="#2A1A10" stroke="none"/>
+    <rect x="350" y="189" width="160" height="22" rx="0" fill="#10281A" stroke="none"/>
+    <rect x="510" y="189" width="60"  height="22" rx="0" fill="#2A1820" stroke="none"/>
+    <rect x="570" y="189" width="60"  height="22" rx="0" fill="#102218" stroke="none"/>
+    <!-- overflow -->
+    <rect x="630" y="189" width="40"  height="22" rx="4" fill="#3A1010" stroke="#FF5A5A" stroke-width="1"/>
+    <text x="650" y="204" text-anchor="middle" font-size="9" fill="#FF5A5A" font-family="Space Mono,monospace">FULL</text>
+    <text x="340" y="230" text-anchor="middle" font-size="9" fill="#5A2A2A" font-family="Space Mono,monospace">← context limit hit → must summarise, compress, or use external memory →</text>
+  </svg>
+
+  <div class="slabel" style="margin-top:16px">Memory types available to agents</div>
+  <div class="grid2">
+    <div class="card" style="border-color:rgba(0,229,255,.2)">
+      <div class="card-title">📋 In-context (working memory)</div>
+      <div class="card-body">Everything in the current token window. Immediate, zero-latency, but finite. Lost when the conversation ends.</div>
+      <div style="margin-top:8px"><span class="pill" style="color:var(--cyan);border-color:rgba(0,229,255,.3)">temporary</span><span class="pill" style="color:var(--cyan);border-color:rgba(0,229,255,.3)">fast</span><span class="pill" style="color:var(--cyan);border-color:rgba(0,229,255,.3)">limited</span></div>
+    </div>
+    <div class="card" style="border-color:rgba(0,214,143,.2)">
+      <div class="card-title">🗄️ External (persistent memory)</div>
+      <div class="card-body">Vector DB, SQL, key-value store. The agent calls a tool to read/write. Survives across sessions. Unlimited but adds a round-trip.</div>
+      <div style="margin-top:8px"><span class="pill" style="color:var(--green);border-color:rgba(0,214,143,.3)">persistent</span><span class="pill" style="color:var(--green);border-color:rgba(0,214,143,.3)">unlimited</span><span class="pill" style="color:var(--green);border-color:rgba(0,214,143,.3)">tool call</span></div>
+    </div>
+    <div class="card" style="border-color:rgba(123,97,255,.2)">
+      <div class="card-title">✂️ Summarisation</div>
+      <div class="card-body">When context fills, the agent (or the host) compresses old turns into a shorter summary, freeing tokens while preserving key facts.</div>
+      <div style="margin-top:8px"><span class="pill" style="color:var(--purple);border-color:rgba(123,97,255,.3)">lossy</span><span class="pill" style="color:var(--purple);border-color:rgba(123,97,255,.3)">compresses</span></div>
+    </div>
+    <div class="card" style="border-color:rgba(255,122,61,.2)">
+      <div class="card-title">📌 Semantic cache</div>
+      <div class="card-body">Tool results that are likely to be reused (e.g. a large doc) can be cached on the server side and injected cheaply via prefix caching.</div>
+      <div style="margin-top:8px"><span class="pill" style="color:var(--orange);border-color:rgba(255,122,61,.3)">fast re-use</span><span class="pill" style="color:var(--orange);border-color:rgba(255,122,61,.3)">KV cache hit</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     PANEL 4 — MCP
+════════════════════════════════ -->
+<div class="panel" id="panel-mcp">
+
+  <div class="card">
+    <div class="card-title">The problem MCP solves</div>
+    <div class="card-body">Before MCP, every tool integration was custom code: a different SDK, auth pattern, data format, and transport per service. If you wanted an agent to talk to GitHub, Slack, a database, and a browser — you wrote four completely different integrations. Multiply that by hundreds of AI apps and hundreds of services: an M×N explosion of bespoke connectors. MCP (Model Context Protocol, by Anthropic) is the standardisation layer that collapses that to M+N.</div>
+  </div>
+
+  <!-- Before / After -->
+  <div class="grid2" style="margin:16px 0">
+    <div class="card" style="border-color:rgba(255,90,90,.25)">
+      <div class="card-title" style="color:var(--red)">Before MCP — M×N chaos</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;">
+        App A ←→ GitHub (custom)<br>
+        App A ←→ Slack (custom)<br>
+        App A ←→ Postgres (custom)<br>
+        App B ←→ GitHub (different custom)<br>
+        App B ←→ Slack (different custom)<br>
+        <span style="color:var(--red)">N apps × M services integrations</span>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(0,229,255,.25)">
+      <div class="card-title" style="color:var(--cyan)">After MCP — M+N standard</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;">
+        App A → MCP client<br>
+        App B → MCP client<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↕ standard protocol<br>
+        GitHub MCP server<br>
+        Slack MCP server<br>
+        <span style="color:var(--cyan)">Write once, connect anywhere</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MCP architecture -->
+  <div class="slabel">MCP architecture</div>
+
+  <svg viewBox="0 0 680 290" style="margin:12px 0" role="img">
+    <title>MCP architecture diagram</title>
+    <defs>
+      <marker id="ar4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- LLM -->
+    <rect x="10" y="100" width="130" height="80" rx="8" fill="#1C1C2E" stroke="#7B61FF" stroke-width="1"/>
+    <text x="75" y="128" text-anchor="middle" font-size="11" font-weight="600" fill="#A090FF" font-family="Space Grotesk,sans-serif">LLM</text>
+    <text x="75" y="146" text-anchor="middle" font-size="9" fill="#6A5ADA" font-family="Space Mono,monospace">emits tool_use</text>
+    <text x="75" y="160" text-anchor="middle" font-size="9" fill="#6A5ADA" font-family="Space Mono,monospace">receives tool_result</text>
+    <text x="75" y="174" text-anchor="middle" font-size="9" fill="#5A4ABA" font-family="Space Mono,monospace">(just tokens)</text>
+
+    <!-- MCP Host / Client -->
+    <rect x="180" y="80" width="160" height="120" rx="8" fill="#1E1E30" stroke="#4A4A8A" stroke-width="1"/>
+    <text x="260" y="102" text-anchor="middle" font-size="11" font-weight="600" fill="#8080CC" font-family="Space Grotesk,sans-serif">MCP Host app</text>
+    <rect x="192" y="110" width="136" height="30" rx="4" fill="#14142A" stroke="#3A3A6A" stroke-width="0.6"/>
+    <text x="260" y="130" text-anchor="middle" font-size="9" fill="#5A5AAA" font-family="Space Mono,monospace">MCP Client (built-in)</text>
+    <text x="260" y="155" text-anchor="middle" font-size="9" fill="#4A4A8A" font-family="Space Mono,monospace">intercepts tool_use,</text>
+    <text x="260" y="168" text-anchor="middle" font-size="9" fill="#4A4A8A" font-family="Space Mono,monospace">routes to right server,</text>
+    <text x="260" y="181" text-anchor="middle" font-size="9" fill="#4A4A8A" font-family="Space Mono,monospace">returns tool_result</text>
+
+    <!-- arrows LLM ↔ host -->
+    <line x1="140" y1="130" x2="180" y2="130" stroke="#7B61FF" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#ar4)"/>
+    <line x1="180" y1="148" x2="140" y2="148" stroke="#00D68F" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#ar4)"/>
+    <text x="160" y="124" text-anchor="middle" font-size="8" fill="#7B61FF" font-family="Space Mono,monospace">tool_use</text>
+    <text x="160" y="162" text-anchor="middle" font-size="8" fill="#00D68F" font-family="Space Mono,monospace">result</text>
+
+    <!-- MCP protocol label -->
+    <text x="370" y="82" text-anchor="middle" font-size="9" fill="#3A5A7A" font-family="Space Mono,monospace">JSON-RPC 2.0 over stdio / SSE / HTTP</text>
+    <line x1="340" y1="88" x2="340" y2="274" stroke="#1C2A42" stroke-width="1" stroke-dasharray="4 3"/>
+
+    <!-- MCP Servers (right side) -->
+    <!-- Server 1: GitHub -->
+    <rect x="380" y="20" width="140" height="54" rx="6" fill="#1A2E1A" stroke="#3A7A3A" stroke-width="0.8"/>
+    <text x="450" y="40" text-anchor="middle" font-size="10" font-weight="600" fill="#5ABA5A" font-family="Space Grotesk,sans-serif">GitHub MCP server</text>
+    <text x="450" y="56" text-anchor="middle" font-size="9" fill="#3A8A3A" font-family="Space Mono,monospace">tools: list_repos, create_pr…</text>
+    <text x="450" y="68" text-anchor="middle" font-size="9" fill="#2A6A2A" font-family="Space Mono,monospace">resources: file contents</text>
+
+    <!-- Server 2: Slack -->
+    <rect x="380" y="90" width="140" height="54" rx="6" fill="#1E2A40" stroke="#3A5A8A" stroke-width="0.8"/>
+    <text x="450" y="110" text-anchor="middle" font-size="10" font-weight="600" fill="#5A9ADA" font-family="Space Grotesk,sans-serif">Slack MCP server</text>
+    <text x="450" y="126" text-anchor="middle" font-size="9" fill="#3A7AAA" font-family="Space Mono,monospace">tools: send_message, search</text>
+    <text x="450" y="138" text-anchor="middle" font-size="9" fill="#2A5A8A" font-family="Space Mono,monospace">resources: channel history</text>
+
+    <!-- Server 3: DB -->
+    <rect x="380" y="160" width="140" height="54" rx="6" fill="#2A1E10" stroke="#7A5A2A" stroke-width="0.8"/>
+    <text x="450" y="180" text-anchor="middle" font-size="10" font-weight="600" fill="#C8902A" font-family="Space Grotesk,sans-serif">Postgres MCP server</text>
+    <text x="450" y="196" text-anchor="middle" font-size="9" fill="#9A6A20" font-family="Space Mono,monospace">tools: query, insert, schema</text>
+    <text x="450" y="208" text-anchor="middle" font-size="9" fill="#7A4A10" font-family="Space Mono,monospace">resources: table definitions</text>
+
+    <!-- Server 4: Custom -->
+    <rect x="380" y="230" width="140" height="54" rx="6" fill="#1E1A2A" stroke="#6A4A9A" stroke-width="0.8"/>
+    <text x="450" y="250" text-anchor="middle" font-size="10" font-weight="600" fill="#9A7ACA" font-family="Space Grotesk,sans-serif">Your MCP server</text>
+    <text x="450" y="266" text-anchor="middle" font-size="9" fill="#6A4A9A" font-family="Space Mono,monospace">any tool you write</text>
+    <text x="450" y="278" text-anchor="middle" font-size="9" fill="#4A2A7A" font-family="Space Mono,monospace">in any language</text>
+
+    <!-- arrows host → servers -->
+    <line x1="340" y1="120" x2="380" y2="47"  stroke="#3A5A3A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar4)"/>
+    <line x1="340" y1="130" x2="380" y2="117" stroke="#3A5A7A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar4)"/>
+    <line x1="340" y1="140" x2="380" y2="187" stroke="#7A5A2A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar4)"/>
+    <line x1="340" y1="150" x2="380" y2="257" stroke="#4A2A6A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar4)"/>
+
+    <!-- Real world icons on far right -->
+    <text x="530" y="48"  font-size="10" fill="#3A8A3A" font-family="Space Mono,monospace">→ github.com API</text>
+    <text x="530" y="118" font-size="10" fill="#3A6A9A" font-family="Space Mono,monospace">→ slack.com API</text>
+    <text x="530" y="188" font-size="10" fill="#8A6A20" font-family="Space Mono,monospace">→ localhost:5432</text>
+    <text x="530" y="258" font-size="10" fill="#5A3A8A" font-family="Space Mono,monospace">→ anything</text>
+  </svg>
+
+  <!-- Three MCP primitives -->
+  <div class="slabel">MCP's three primitives</div>
+  <div class="grid3" style="margin-top:10px">
+    <div class="card" style="border-color:rgba(0,214,143,.2)">
+      <div class="card-title" style="color:var(--green)">🔧 Tools</div>
+      <div class="card-body">Functions the model can call that take action or fetch data. Equivalent to what we've been calling "tools" — but now standardised. The server advertises them; any MCP-compatible host can use them.</div>
+    </div>
+    <div class="card" style="border-color:rgba(0,229,255,.2)">
+      <div class="card-title" style="color:var(--cyan)">📄 Resources</div>
+      <div class="card-body">Read-only data sources the model can read — like files, database records, API responses. The model requests them like URIs. Resources go into context without running as code.</div>
+    </div>
+    <div class="card" style="border-color:rgba(255,209,102,.2)">
+      <div class="card-title" style="color:var(--yellow)">💬 Prompts</div>
+      <div class="card-body">Reusable prompt templates the server exposes. The host can insert them as structured messages — e.g. a "code review" prompt template that always follows the same format.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     PANEL 5 — FULL PICTURE
+════════════════════════════════ -->
+<div class="panel" id="panel-full">
+
+  <div class="card">
+    <div class="card-title">The complete picture — from user prompt to GPU to tool and back</div>
+    <div class="card-body">This is the full stack. A user message triggers the agent loop. The context window assembles everything (system prompt, history, RAG, tools list). That token sequence hits the GPU — prefill, KV cache, decode. The model emits a tool_use block. The host routes it via MCP to an external server. The result comes back as tokens, appended to context. The loop repeats. Each iteration burns GPU compute and grows the KV cache.</div>
+  </div>
+
+  <svg viewBox="0 0 680 440" role="img">
+    <title>Full agent stack from user to GPU to tools</title>
+    <defs>
+      <marker id="ar5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- ── ROW 1: User + Context assembly ── -->
+    <text x="10" y="16" font-size="9" fill="#3A5A7A" font-family="Space Mono,monospace">① BEFORE GPU</text>
+    <rect x="10"  y="22" width="80"  height="50" rx="6" fill="#1E1E3A" stroke="#4A4A7A" stroke-width="0.8"/>
+    <text x="50"  y="43" text-anchor="middle" font-size="10" font-weight="500" fill="#8080D0" font-family="Space Grotesk,sans-serif">User</text>
+    <text x="50"  y="58" text-anchor="middle" font-size="9" fill="#5A5A9A" font-family="Space Mono,monospace">"Book flight"</text>
+    <line x1="90" y1="47" x2="116" y2="47" stroke="#4A4A7A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar5)"/>
+
+    <rect x="118" y="22" width="200" height="50" rx="6" fill="#1E2E20" stroke="#4A7A4A" stroke-width="0.8"/>
+    <text x="218" y="40" text-anchor="middle" font-size="10" font-weight="500" fill="#6ABA6A" font-family="Space Grotesk,sans-serif">Context builder</text>
+    <text x="218" y="55" text-anchor="middle" font-size="8" fill="#4A8A4A" font-family="Space Mono,monospace">system + history + RAG docs</text>
+    <text x="218" y="67" text-anchor="middle" font-size="8" fill="#3A7A3A" font-family="Space Mono,monospace">+ tool schemas + user query</text>
+
+    <line x1="318" y1="47" x2="344" y2="47" stroke="#4A7A4A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar5)"/>
+
+    <!-- context window bar -->
+    <rect x="346" y="22" width="320" height="50" rx="6" fill="#12121E" stroke="#2A2A5A" stroke-width="0.8"/>
+    <rect x="346" y="22" width="50"  height="50" rx="6" fill="#1E2A50" stroke="none"/>
+    <rect x="396" y="22" width="80"  height="50" rx="0" fill="#1A2E1A" stroke="none"/>
+    <rect x="476" y="22" width="90"  height="50" rx="0" fill="#2E1A1A" stroke="none"/>
+    <rect x="566" y="22" width="60"  height="50" rx="0" fill="#1E1A2E" stroke="none"/>
+    <rect x="626" y="22" width="40"  height="50" rx="6" fill="#2E2A1A" stroke="none"/>
+    <text x="371" y="51" text-anchor="middle" font-size="7" fill="#5A7ADA" font-family="Space Mono,monospace">sys</text>
+    <text x="436" y="51" text-anchor="middle" font-size="7" fill="#5A8A5A" font-family="Space Mono,monospace">history</text>
+    <text x="521" y="51" text-anchor="middle" font-size="7" fill="#BA8A8A" font-family="Space Mono,monospace">RAG docs</text>
+    <text x="596" y="47" text-anchor="middle" font-size="7" fill="#9A7ACA" font-family="Space Mono,monospace">tools</text>
+    <text x="596" y="59" text-anchor="middle" font-size="7" fill="#9A7ACA" font-family="Space Mono,monospace">list</text>
+    <text x="646" y="51" text-anchor="middle" font-size="7" fill="#BABA5A" font-family="Space Mono,monospace">query</text>
+
+    <!-- ── ROW 2: GPU ── -->
+    <text x="10" y="98" font-size="9" fill="#3A5A7A" font-family="Space Mono,monospace">② GPU — prefill then decode</text>
+    <rect x="10" y="104" width="656" height="100" rx="8" fill="#0F0F1E" stroke="#2A2A5A" stroke-width="1"/>
+
+    <!-- HBM -->
+    <rect x="20" y="114" width="80" height="80" rx="6" fill="#1A2E4A" stroke="#2E5A8A" stroke-width="0.8"/>
+    <text x="60" y="135" text-anchor="middle" font-size="9" font-weight="500" fill="#5A9ADA" font-family="Space Grotesk,sans-serif">HBM</text>
+    <text x="60" y="149" text-anchor="middle" font-size="8" fill="#3A6A8A" font-family="Space Mono,monospace">weights</text>
+    <text x="60" y="162" text-anchor="middle" font-size="8" fill="#3A6A8A" font-family="Space Mono,monospace">KV cache</text>
+    <text x="60" y="175" text-anchor="middle" font-size="8" fill="#2A5A7A" font-family="Space Mono,monospace">growing…</text>
+    <line x1="100" y1="154" x2="120" y2="154" stroke="#2E5A8A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar5)"/>
+
+    <!-- L2 -->
+    <rect x="122" y="124" width="70" height="60" rx="5" fill="#1E1E3A" stroke="#4A4A7A" stroke-width="0.7"/>
+    <text x="157" y="150" text-anchor="middle" font-size="9" fill="#6A6AAA" font-family="Space Grotesk,sans-serif">L2</text>
+    <text x="157" y="164" text-anchor="middle" font-size="8" fill="#4A4A8A" font-family="Space Mono,monospace">50 MB</text>
+    <line x1="192" y1="154" x2="210" y2="154" stroke="#4A4A7A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar5)"/>
+
+    <!-- SM -->
+    <rect x="212" y="114" width="120" height="80" rx="6" fill="#1C1C2E" stroke="#5A5AAA" stroke-width="0.8"/>
+    <text x="272" y="133" text-anchor="middle" font-size="9" font-weight="500" fill="#8080D0" font-family="Space Grotesk,sans-serif">SM</text>
+    <rect x="222" y="138" width="50" height="20" rx="3" fill="#1E3A2E" stroke="#3A7A5A" stroke-width="0.5"/>
+    <text x="247" y="152" text-anchor="middle" font-size="8" fill="#5ABA8A" font-family="Space Mono,monospace">L1 SRAM</text>
+    <rect x="278" y="138" width="44" height="20" rx="3" fill="#1E2040" stroke="#4A6AFF" stroke-width="0.5"/>
+    <text x="300" y="152" text-anchor="middle" font-size="8" fill="#8AABFF" font-family="Space Mono,monospace">TC</text>
+    <text x="272" y="184" text-anchor="middle" font-size="8" fill="#4A4A8A" font-family="Space Mono,monospace">prefill all tokens</text>
+
+    <!-- decode arrow -->
+    <line x1="332" y1="154" x2="360" y2="154" stroke="#5A5AAA" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar5)"/>
+
+    <!-- decode loop -->
+    <rect x="362" y="114" width="130" height="80" rx="6" fill="#0F1520" stroke="#3A5A3A" stroke-width="0.8"/>
+    <text x="427" y="133" text-anchor="middle" font-size="9" font-weight="500" fill="#5ABA5A" font-family="Space Grotesk,sans-serif">Decode loop</text>
+    <text x="427" y="148" text-anchor="middle" font-size="8" fill="#3A8A3A" font-family="Space Mono,monospace">token by token</text>
+    <text x="427" y="162" text-anchor="middle" font-size="8" fill="#3A8A3A" font-family="Space Mono,monospace">until stop or</text>
+    <text x="427" y="176" text-anchor="middle" font-size="8" fill="#FF7A3D" font-family="Space Mono,monospace">tool_use emitted</text>
+
+    <line x1="492" y1="154" x2="518" y2="154" stroke="#FF7A3D" stroke-width="1.2" marker-end="url(#ar5)"/>
+
+    <!-- output tokens -->
+    <rect x="520" y="114" width="136" height="80" rx="6" fill="#1E1A10" stroke="#8A5A2A" stroke-width="0.8"/>
+    <text x="588" y="133" text-anchor="middle" font-size="9" font-weight="500" fill="#FF9A6A" font-family="Space Grotesk,sans-serif">Output tokens</text>
+    <text x="588" y="150" text-anchor="middle" font-size="8" fill="#C07A50" font-family="Space Mono,monospace">either: plain text</text>
+    <text x="588" y="164" text-anchor="middle" font-size="8" fill="#FF7A3D" font-family="Space Mono,monospace">or: tool_use block</text>
+    <text x="588" y="178" text-anchor="middle" font-size="8" fill="#9A5A30" font-family="Space Mono,monospace">{name, input}</text>
+
+    <!-- ── ROW 3: MCP routing ── -->
+    <text x="10" y="224" font-size="9" fill="#3A5A7A" font-family="Space Mono,monospace">③ MCP HOST intercepts tool_use, routes to server</text>
+
+    <line x1="588" y1="204" x2="588" y2="230" stroke="#FF7A3D" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#ar5)"/>
+
+    <rect x="460" y="232" width="200" height="54" rx="8" fill="#1E1E30" stroke="#5A5A8A" stroke-width="0.8"/>
+    <text x="560" y="254" text-anchor="middle" font-size="10" font-weight="500" fill="#8080CC" font-family="Space Grotesk,sans-serif">MCP Host / Client</text>
+    <text x="560" y="270" text-anchor="middle" font-size="8" fill="#5A5AAA" font-family="Space Mono,monospace">parse tool_use → route → call server</text>
+    <text x="560" y="282" text-anchor="middle" font-size="8" fill="#4A4A8A" font-family="Space Mono,monospace">wait for result → return tool_result</text>
+
+    <line x1="460" y1="259" x2="330" y2="259" stroke="#3A7A3A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar5)"/>
+
+    <!-- MCP Servers row -->
+    <rect x="10"  y="232" width="130" height="34" rx="5" fill="#1A2E1A" stroke="#3A7A3A" stroke-width="0.7"/>
+    <rect x="10"  y="270" width="130" height="34" rx="5" fill="#1E2A40" stroke="#3A5A8A" stroke-width="0.7"/>
+    <rect x="148" y="232" width="130" height="34" rx="5" fill="#2A1E10" stroke="#7A5A2A" stroke-width="0.7"/>
+    <rect x="148" y="270" width="130" height="34" rx="5" fill="#1E1A2A" stroke="#6A4A9A" stroke-width="0.7"/>
+    <text x="75"  y="253" text-anchor="middle" font-size="9" fill="#5ABA5A" font-family="Space Mono,monospace">GitHub MCP server</text>
+    <text x="75"  y="291" text-anchor="middle" font-size="9" fill="#5A9ADA" font-family="Space Mono,monospace">Slack MCP server</text>
+    <text x="213" y="253" text-anchor="middle" font-size="9" fill="#C8902A" font-family="Space Mono,monospace">Postgres MCP server</text>
+    <text x="213" y="291" text-anchor="middle" font-size="9" fill="#9A7ACA" font-family="Space Mono,monospace">Your MCP server</text>
+
+    <!-- ── ROW 4: Result back into context ── -->
+    <text x="10" y="326" font-size="9" fill="#3A5A7A" font-family="Space Mono,monospace">④ tool_result appended to context window → loop repeats from ②</text>
+
+    <line x1="340" y1="306" x2="340" y2="340" stroke="#00D68F" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#ar5)"/>
+
+    <rect x="10" y="342" width="656" height="28" rx="5" fill="#12121E" stroke="#1A3A2A" stroke-width="0.8"/>
+    <rect x="10"  y="342" width="50"  height="28" rx="5" fill="#1E2A50" stroke="none"/>
+    <rect x="60"  y="342" width="80"  height="28" rx="0" fill="#1A2E1A" stroke="none"/>
+    <rect x="140" y="342" width="90"  height="28" rx="0" fill="#2E1A1A" stroke="none"/>
+    <rect x="230" y="342" width="50"  height="28" rx="0" fill="#1E1A2E" stroke="none"/>
+    <rect x="280" y="342" width="40"  height="28" rx="0" fill="#2E2A1A" stroke="none"/>
+    <rect x="320" y="342" width="70"  height="28" rx="0" fill="#2A1A10" stroke="none"/><!-- tool_use -->
+    <rect x="390" y="342" width="270" height="28" rx="5" fill="#102818" stroke="#00D68F" stroke-width="0.8"/><!-- tool_result -->
+    <text x="35"  y="360" text-anchor="middle" font-size="7" fill="#5A7ADA" font-family="Space Mono,monospace">sys</text>
+    <text x="100" y="360" text-anchor="middle" font-size="7" fill="#5A8A5A" font-family="Space Mono,monospace">history</text>
+    <text x="185" y="360" text-anchor="middle" font-size="7" fill="#BA8A8A" font-family="Space Mono,monospace">RAG</text>
+    <text x="255" y="360" text-anchor="middle" font-size="7" fill="#9A7ACA" font-family="Space Mono,monospace">tools</text>
+    <text x="300" y="360" text-anchor="middle" font-size="7" fill="#BABA5A" font-family="Space Mono,monospace">q</text>
+    <text x="355" y="360" text-anchor="middle" font-size="7" fill="#FF7A3D" font-family="Space Mono,monospace">tool_use</text>
+    <text x="525" y="360" text-anchor="middle" font-size="8" fill="#00D68F" font-family="Space Mono,monospace">tool_result: [QF400 dep 07:00 $189, …]  ← new tokens</text>
+
+    <!-- Back arrow to GPU -->
+    <line x1="340" y1="370" x2="340" y2="398" stroke="#4A6480" stroke-width="1" stroke-dasharray="2 2"/>
+    <text x="340" y="412" text-anchor="middle" font-size="9" fill="#3A5A70" font-family="Space Mono,monospace">→ next decode turn begins: full context re-prefilled from KV cache</text>
+    <text x="340" y="428" text-anchor="middle" font-size="9" fill="#2A4A5A" font-family="Space Mono,monospace">→ model reads result, reasons, either calls another tool or writes final answer</text>
+  </svg>
+
+  <div class="grid2">
+    <div class="card" style="border-color:rgba(255,122,61,.2)">
+      <div class="card-title">Cost of every agent loop iteration</div>
+      <div class="card-body">Each loop turn is a full GPU prefill+decode cycle. With a growing context, prefill gets more expensive every turn — you're processing all previous tokens again (though KV cache means only the new tokens actually run full compute; the rest are cache hits). Agentic tasks can cost 10–100× more tokens than a simple Q&A.</div>
+    </div>
+    <div class="card" style="border-color:rgba(0,214,143,.2)">
+      <div class="card-title">The model has no idea it's "in a loop"</div>
+      <div class="card-body">From the GPU's perspective, every turn is just another inference call with a longer context. The "agent loop" is entirely orchestrated by the host application — it decides when to stop, when to pass tool results back, and whether to call the model again. The LLM just sees tokens in, produces tokens out.</div>
+    </div>
+  </div>
+
+</div><!-- end full panel -->
+
+<script>
+// ── TAB SWITCHING ──
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+// ── AGENT LOOP STEPPER ──
+const loopSteps = [
+  {
+    label:'Task arrives',
+    title:'① User task enters the context window',
+    body:'The user says "Book me a flight to Sydney." This text is tokenised and placed into the context window along with the system prompt and the list of available tools. The GPU hasn\'t run yet — this is all CPU-side assembly.',
+    active:['task'], arrows:[], iter:''
+  },
+  {
+    label:'LLM reasons',
+    title:'② LLM reads the context and reasons about what to do',
+    body:'During prefill+decode, the model processes all tokens. It sees the task and the tool list. It decides: "I need to search for flights first." It emits a tool_use block — a structured JSON object with the tool name and arguments. This is just more output tokens, not a real function call.',
+    active:['task','reason'], arrows:['tr'], iter:'turn 1'
+  },
+  {
+    label:'Tool called',
+    title:'③ The host intercepts the tool_use and calls the real function',
+    body:'The host application (not the GPU, not the model) parses the tool_use JSON, routes it via MCP to the appropriate server — say, a flight search API — and executes the real function. The model is idle during this. The GPU is not running. This network call might take 200ms.',
+    active:['reason','call'], arrows:['tr','rc'], iter:'turn 1'
+  },
+  {
+    label:'Result back',
+    title:'④ Tool result is injected back into the context window',
+    body:'The API returns "[QF400 dep 07:00 $189, QF500 dep 09:30 $210]". This is formatted as a tool_result message and appended to the context window as new tokens. The context is now longer than it was. The GPU\'s KV cache from the previous turn is still valid for all the old tokens.',
+    active:['call','obs'], arrows:['rc','co'], iter:'turn 1 → 2'
+  },
+  {
+    label:'Loop back',
+    title:'⑤ The model reasons again — done, or another tool needed?',
+    body:'The model runs again (prefill for new tokens only — KV cache handles the rest). It now sees the flight results. It decides: "I have enough information" — or it might decide to call another tool (e.g. check_baggage_allowance). If done, it writes the final answer in plain text.',
+    active:['obs','done','reason'], arrows:['co','od','dr'], iter:'turn 2'
+  },
+  {
+    label:'Answer out',
+    title:'⑥ Final answer delivered — loop exits',
+    body:'The model emits a plain-text response: "I found a QF400 flight departing at 07:00 for $189. Shall I book it?" The host detects no tool_use block in the output — the loop terminates. The final token stream is shown to the user.',
+    active:['done'], arrows:[], iter:'done ✓', showOutput: true
+  }
+];
+
+const loopNodeIds = {
+  task:'lnr-task', reason:'lnr-reason', call:'lnr-call', obs:'lnr-obs', done:'lnr-done'
+};
+const loopArrowIds = {
+  tr:'larr-tr', rc:'larr-rc', co:'larr-co', od:'larr-od', dr:'larr-dr'
+};
+const loopColors = {
+  task:'#4A6AFF', reason:'#7B61FF', call:'#FF7A3D', obs:'#00D68F', done:'#00E5FF'
+};
+const loopDefaultStrokes = {
+  task:'#4A6AFF', reason:'#7B61FF', call:'#FF7A3D', obs:'#00D68F', done:'#00E5FF'
+};
+
+let loopCur = -1;
+
+function loopRender(idx) {
+  if(idx < 0 || idx >= loopSteps.length) return;
+  loopCur = idx;
+  const s = loopSteps[idx];
+  // dim all nodes
+  Object.keys(loopNodeIds).forEach(k => {
+    const el = document.getElementById(loopNodeIds[k]);
+    if(!el) return;
+    const on = s.active.includes(k);
+    el.setAttribute('opacity', on ? '1' : '0.18');
+    el.setAttribute('stroke-width', on ? '2' : '1');
+  });
+  // dim all arrows
+  Object.keys(loopArrowIds).forEach(k => {
+    const el = document.getElementById(loopArrowIds[k]);
+    if(!el) return;
+    el.setAttribute('opacity', s.arrows.includes(k) ? '0.9' : '0.12');
+  });
+  // iter label
+  document.getElementById('iter-label').textContent = s.iter ? 'loop' : 'agent loop';
+  document.getElementById('iter-num').textContent = s.iter || '⟳';
+  // output
+  const ob = document.getElementById('out-box');
+  const ot = document.getElementById('out-text');
+  if(s.showOutput) {
+    ob.setAttribute('opacity','1'); ot.setAttribute('opacity','1');
+  } else {
+    ob.setAttribute('opacity','0'); ot.setAttribute('opacity','0');
+  }
+  // info
+  document.getElementById('loop-ititle').textContent = s.title;
+  document.getElementById('loop-ibody').textContent = s.body;
+  document.getElementById('loop-prev').disabled = loopCur <= 0;
+  document.getElementById('loop-next').disabled = loopCur >= loopSteps.length - 1;
+  document.getElementById('loop-ctr').textContent = (loopCur+1)+' / '+loopSteps.length;
+  loopRenderStepper();
+}
+
+function loopGo(d) { loopRender(loopCur + d); }
+
+function loopReset() {
+  Object.keys(loopNodeIds).forEach(k => {
+    const el = document.getElementById(loopNodeIds[k]);
+    if(el) { el.setAttribute('opacity','1'); el.setAttribute('stroke-width','1'); }
+  });
+  Object.keys(loopArrowIds).forEach(k => {
+    const el = document.getElementById(loopArrowIds[k]);
+    if(el) el.setAttribute('opacity','0.3');
+  });
+  document.getElementById('iter-label').textContent = 'agent loop';
+  document.getElementById('iter-num').textContent = '⟳';
+  document.getElementById('out-box').setAttribute('opacity','0');
+  document.getElementById('out-text').setAttribute('opacity','0');
+  document.getElementById('loop-ititle').textContent = 'The agent reasoning loop';
+  document.getElementById('loop-ibody').textContent = 'An agent is just an LLM in a loop with tools. Press Next to walk through one full turn — the model reasoning, picking a tool, getting a result, and deciding whether it\'s done.';
+  loopCur = -1;
+  document.getElementById('loop-prev').disabled = true;
+  document.getElementById('loop-next').disabled = false;
+  document.getElementById('loop-ctr').textContent = '0 / '+loopSteps.length;
+  loopRenderStepper();
+}
+
+function loopRenderStepper() {
+  const el = document.getElementById('loop-stepper');
+  el.innerHTML = loopSteps.map((s,i) => {
+    const st = i < loopCur ? 'done' : i === loopCur ? 'active' : '';
+    const num = i < loopCur ? '✓' : i+1;
+    return `<button class="sbtn ${st}" onclick="loopRender(${i})"><span class="snum">${num}</span><span class="slbl">${s.label}</span></button>${i < loopSteps.length-1 ? '<div class="sdiv"></div>' : ''}`;
+  }).join('');
+}
+
+loopReset();
+</script>
+</body>
+</html>

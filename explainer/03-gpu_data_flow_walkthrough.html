@@ -1,0 +1,413 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{font-family:var(--font-sans,sans-serif);color:var(--text-primary);padding:16px 0 8px;max-width:680px;margin:0 auto}
+.stepper{display:flex;gap:0;align-items:center;margin-bottom:18px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.stepper::-webkit-scrollbar{display:none}
+.step-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;border:none;background:none;padding:0 6px;opacity:.45;transition:opacity .2s}
+.step-btn.active{opacity:1}
+.step-btn.done{opacity:.7}
+.step-num{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--text-secondary);background:var(--surface-1);transition:all .2s}
+.step-btn.active .step-num{background:var(--text-primary);color:var(--surface-2);border-color:var(--text-primary)}
+.step-btn.done .step-num{background:var(--bg-success);border-color:var(--border-success);color:var(--text-success)}
+.step-label{font-size:10px;color:var(--text-muted);white-space:nowrap;text-align:center;max-width:64px;line-height:1.3}
+.step-btn.active .step-label{color:var(--text-primary)}
+.step-divider{width:20px;height:1px;background:var(--border);flex-shrink:0;margin-bottom:14px}
+
+.scene{position:relative;width:100%}
+svg{display:block;width:100%}
+
+/* SVG animation classes */
+.flow-particle{transition:opacity .3s}
+.highlight-box{transition:all .3s}
+
+.info-card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-top:12px}
+.ic-row{display:flex;gap:8px;align-items:flex-start}
+.ic-badge{font-size:10px;font-family:var(--font-mono,monospace);padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.ic-text{font-size:13px;color:var(--text-secondary);line-height:1.6}
+.ic-title{font-size:15px;font-weight:500;color:var(--text-primary);margin-bottom:6px}
+
+.nav-row{display:flex;gap:8px;margin-top:12px;align-items:center}
+.btn{padding:7px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:var(--surface-1);color:var(--text-primary);font-family:var(--font-sans,sans-serif);transition:all .15s}
+.btn:hover{border-color:var(--border-stronger);background:var(--surface-0)}
+.btn.primary{background:var(--text-primary);color:var(--surface-2);border-color:var(--text-primary)}
+.btn.primary:hover{opacity:.88}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.step-counter{font-size:12px;color:var(--text-muted);margin-left:auto;font-family:var(--font-mono,monospace)}
+
+.prompt-bar{background:var(--surface-0);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:var(--font-mono,monospace);font-size:12px;color:var(--text-secondary);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.prompt-label{font-size:10px;color:var(--text-muted);white-space:nowrap}
+.token{display:inline-block;padding:2px 6px;border-radius:4px;margin:0 2px;font-size:11px;font-family:var(--font-mono,monospace);border:1px solid var(--border);background:var(--surface-1);transition:all .3s}
+.token.active{background:var(--bg-accent);border-color:var(--border-accent);color:var(--text-accent)}
+.token.done-t{background:var(--bg-success);border-color:var(--border-success);color:var(--text-success)}
+</style>
+
+<div class="w">
+
+<div class="prompt-bar">
+  <span class="prompt-label">PROMPT</span>
+  <span id="tokens">
+    <span class="token" id="t0">What</span>
+    <span class="token" id="t1">is</span>
+    <span class="token" id="t2">the</span>
+    <span class="token" id="t3">capital</span>
+    <span class="token" id="t4">of</span>
+    <span class="token" id="t5">France</span>
+    <span class="token" id="t6">?</span>
+  </span>
+</div>
+
+<div class="stepper" id="stepper"></div>
+
+<div class="scene">
+<svg id="diag" viewBox="0 0 680 310" role="img">
+  <title>GPU data flow diagram</title>
+  <desc>Animated cross-section showing data moving from HBM through L2 cache into an SM's L1 SRAM and Tensor Cores</desc>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- ── HBM LEFT ── -->
+  <g id="g-hbm">
+    <rect x="10" y="60" width="100" height="200" rx="8" fill="#1A2E4A" stroke="#2E5A8A" stroke-width="1" id="hbm-rect"/>
+    <!-- memory layer lines -->
+    <rect x="18" y="70" width="84" height="16" rx="2" fill="#1E3D6E" stroke="#3A6EA8" stroke-width="0.5"/>
+    <rect x="18" y="92" width="84" height="16" rx="2" fill="#1E3D6E" stroke="#3A6EA8" stroke-width="0.5"/>
+    <rect x="18" y="114" width="84" height="16" rx="2" fill="#1E3D6E" stroke="#3A6EA8" stroke-width="0.5"/>
+    <rect x="18" y="136" width="84" height="16" rx="2" fill="#1E3D6E" stroke="#3A6EA8" stroke-width="0.5"/>
+    <rect x="18" y="158" width="84" height="16" rx="2" fill="#1E3D6E" stroke="#3A6EA8" stroke-width="0.5"/>
+    <rect x="18" y="180" width="84" height="16" rx="2" fill="#1E3D6E" stroke="#3A6EA8" stroke-width="0.5"/>
+    <rect x="18" y="202" width="84" height="16" rx="2" fill="#1E3D6E" stroke="#3A6EA8" stroke-width="0.5"/>
+    <rect x="18" y="224" width="84" height="16" rx="2" fill="#1E3D6E" stroke="#3A6EA8" stroke-width="0.5"/>
+    <text x="60" y="252" text-anchor="middle" font-size="11" font-weight="500" fill="#5A9ADA">HBM</text>
+    <text x="60" y="266" text-anchor="middle" font-size="10" fill="#3A6A9A">80 GB · 3.35 TB/s</text>
+    <!-- weight label inside -->
+    <text x="60" y="86" text-anchor="middle" font-size="9" fill="#5A9ADA" id="hbm-lbl1">model weights</text>
+    <text x="60" y="108" text-anchor="middle" font-size="9" fill="#4A7AAA" id="hbm-lbl2">layer 1 W</text>
+    <text x="60" y="130" text-anchor="middle" font-size="9" fill="#4A7AAA">layer 2 W</text>
+    <text x="60" y="152" text-anchor="middle" font-size="9" fill="#4A7AAA">layer 3 W</text>
+    <text x="60" y="174" text-anchor="middle" font-size="9" fill="#4A7AAA">…</text>
+    <text x="60" y="196" text-anchor="middle" font-size="9" fill="#3A6A8A">KV cache</text>
+    <text x="60" y="218" text-anchor="middle" font-size="9" fill="#3A6A8A">activations</text>
+  </g>
+
+  <!-- ── INTERPOSER ── -->
+  <g id="g-bus">
+    <rect x="110" y="130" width="70" height="20" rx="3" fill="#3A2E1A" stroke="#7A6A3A" stroke-width="0.6" id="bus-rect"/>
+    <text x="145" y="144" text-anchor="middle" font-size="9" fill="#C8B06A">interposer bus</text>
+  </g>
+
+  <!-- ── L2 CACHE RING ── -->
+  <g id="g-l2">
+    <rect x="188" y="40" width="304" height="240" rx="10" fill="none" stroke="#4A4A7A" stroke-width="1.5" stroke-dasharray="5 3" id="l2-rect"/>
+    <text x="340" y="56" text-anchor="middle" font-size="10" fill="#6A6AAA" id="l2-lbl">L2 cache — shared across all SMs (50 MB)</text>
+  </g>
+
+  <!-- ── SM CLUSTER ── 4 SMs shown -->
+  <!-- SM 0 (top-left) — our active one -->
+  <g id="g-sm0">
+    <rect x="204" y="66" width="128" height="100" rx="7" fill="#1C1C2E" stroke="#5A5AAA" stroke-width="1.2" id="sm0-rect"/>
+    <text x="268" y="82" text-anchor="middle" font-size="10" font-weight="500" fill="#8080D0">SM 0</text>
+    <!-- L1 SRAM -->
+    <rect x="212" y="88" width="60" height="30" rx="3" fill="#1E3A2E" stroke="#3A7A5A" stroke-width="0.7" id="sram-rect"/>
+    <text x="242" y="107" text-anchor="middle" font-size="9" fill="#5ABA8A">L1 SRAM</text>
+    <!-- CUDA cores -->
+    <rect x="280" y="88" width="20" height="12" rx="2" fill="#2A2A4A" stroke="#5A5AAA" stroke-width="0.5"/>
+    <rect x="304" y="88" width="20" height="12" rx="2" fill="#2A2A4A" stroke="#5A5AAA" stroke-width="0.5"/>
+    <rect x="280" y="104" width="20" height="12" rx="2" fill="#2A2A4A" stroke="#5A5AAA" stroke-width="0.5"/>
+    <rect x="304" y="104" width="20" height="12" rx="2" fill="#2A2A4A" stroke="#5A5AAA" stroke-width="0.5"/>
+    <text x="300" y="82" text-anchor="middle" font-size="8" fill="#6060AA">CUDA</text>
+    <!-- Tensor core -->
+    <rect x="212" y="126" width="112" height="22" rx="3" fill="#1E2A50" stroke="#4A6AFF" stroke-width="0.8" id="tc-rect"/>
+    <text x="268" y="141" text-anchor="middle" font-size="9" fill="#8AABFF">Tensor core</text>
+  </g>
+
+  <!-- SM 1 (top-right, dimmed) -->
+  <g opacity="0.3">
+    <rect x="348" y="66" width="128" height="100" rx="7" fill="#1C1C2E" stroke="#4A4A7A" stroke-width="0.8"/>
+    <text x="412" y="82" text-anchor="middle" font-size="10" fill="#5050A0">SM 1</text>
+    <rect x="356" y="88" width="112" height="30" rx="3" fill="#1E3A2E" stroke="#2A5A3A" stroke-width="0.5"/>
+    <rect x="356" y="126" width="112" height="22" rx="3" fill="#1E2040" stroke="#3A4AAA" stroke-width="0.6"/>
+  </g>
+
+  <!-- SM 2 (bottom-left, dimmed) -->
+  <g opacity="0.3">
+    <rect x="204" y="182" width="128" height="80" rx="7" fill="#1C1C2E" stroke="#4A4A7A" stroke-width="0.8"/>
+    <text x="268" y="198" text-anchor="middle" font-size="10" fill="#5050A0">SM 2</text>
+    <rect x="212" y="206" width="112" height="42" rx="3" fill="#1E2040" stroke="#3A4AAA" stroke-width="0.6"/>
+  </g>
+
+  <!-- SM 3 (bottom-right, dimmed) -->
+  <g opacity="0.3">
+    <rect x="348" y="182" width="128" height="80" rx="7" fill="#1C1C2E" stroke="#4A4A7A" stroke-width="0.8"/>
+    <text x="412" y="198" text-anchor="middle" font-size="10" fill="#5050A0">SM 3</text>
+    <rect x="356" y="206" width="112" height="42" rx="3" fill="#1E2040" stroke="#3A4AAA" stroke-width="0.6"/>
+  </g>
+
+  <!-- ── OUTPUT ── -->
+  <g id="g-out">
+    <rect x="540" y="110" width="120" height="60" rx="8" fill="#1C2E1C" stroke="#3A7A3A" stroke-width="0.8" id="out-rect"/>
+    <text x="600" y="135" text-anchor="middle" font-size="11" font-weight="500" fill="#5ABA5A">Output</text>
+    <text x="600" y="152" text-anchor="middle" font-size="10" fill="#3A8A3A" id="out-word">logits → token</text>
+  </g>
+
+  <!-- ── STATIC ARROWS (always shown) ── -->
+  <!-- HBM → bus -->
+  <line x1="110" y1="140" x2="110" y2="140" stroke="#2E5A8A" stroke-width="0" id="arr-hbm-bus"/>
+  <!-- bus → L2 -->
+  <line x1="180" y1="140" x2="188" y2="140" stroke="#7A6A3A" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#ar)" opacity="0.4"/>
+  <!-- L2 → SM0 tensor core (will be animated) -->
+  <line x1="268" y1="66" x2="268" y2="148" stroke="#4A6AFF" stroke-width="0" id="arr-l2-tc"/>
+  <!-- tensor core → output -->
+  <line x1="492" y1="137" x2="540" y2="137" stroke="#3A7A3A" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#ar)" opacity="0.3" id="arr-tc-out"/>
+
+  <!-- ── ANIMATED PARTICLES (hidden by default) ── -->
+  <!-- particle: HBM→bus -->
+  <circle id="p1" cx="60" cy="140" r="5" fill="#5A9ADA" opacity="0"/>
+  <!-- particle: bus→L2 -->
+  <circle id="p2" cx="145" cy="140" r="5" fill="#C8B06A" opacity="0"/>
+  <!-- particle: L2→SRAM -->
+  <circle id="p3" cx="268" cy="66" r="5" fill="#5ABA8A" opacity="0"/>
+  <!-- particle: SRAM→TC -->
+  <circle id="p4" cx="242" cy="118" r="4" fill="#8AABFF" opacity="0"/>
+  <!-- particle: TC→output -->
+  <circle id="p5" cx="380" cy="137" r="4" fill="#5ABA5A" opacity="0"/>
+
+  <!-- ── HIGHLIGHT OVERLAYS ── -->
+  <rect id="hl-hbm" x="10" y="60" width="100" height="200" rx="8" fill="#5A9ADA" opacity="0" pointer-events="none"/>
+  <rect id="hl-bus" x="110" y="130" width="70" height="20" rx="3" fill="#C8B06A" opacity="0" pointer-events="none"/>
+  <rect id="hl-l2" x="188" y="40" width="304" height="240" rx="10" fill="#8080D0" opacity="0" pointer-events="none"/>
+  <rect id="hl-sram" x="212" y="88" width="60" height="30" rx="3" fill="#5ABA8A" opacity="0" pointer-events="none"/>
+  <rect id="hl-tc" x="212" y="126" width="112" height="22" rx="3" fill="#4A6AFF" opacity="0" pointer-events="none"/>
+  <rect id="hl-out" x="540" y="110" width="120" height="60" rx="8" fill="#5ABA5A" opacity="0" pointer-events="none"/>
+
+</svg>
+</div>
+
+<div class="info-card" id="info-card">
+  <div class="ic-title" id="ic-title">Ready</div>
+  <div class="ic-row">
+    <span class="ic-badge" id="ic-badge" style="background:var(--surface-0);border:1px solid var(--border);color:var(--text-muted)">STEP 0 / 7</span>
+    <div class="ic-text" id="ic-text">Press Next to walk through what happens when you send the prompt "What is the capital of France?" to a GPU running an LLM.</div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="btn" id="btn-prev" onclick="go(-1)" disabled>← Prev</button>
+  <button class="btn primary" id="btn-next" onclick="go(1)">Next →</button>
+  <button class="btn" id="btn-reset" onclick="reset()" style="margin-left:4px">↺ Reset</button>
+  <span class="step-counter" id="step-ctr">0 / 7</span>
+</div>
+
+<div class="stepper" id="stepper"></div>
+
+</div>
+
+<script>
+const steps = [
+  {
+    label: 'Tokenise',
+    badge: 'CPU → GPU', badgeColor: '#5A5A2A', badgeBg: 'rgba(200,176,100,0.12)',
+    title: 'Step 1 — Tokenise the prompt',
+    text: 'The CPU splits "What is the capital of France?" into 7 tokens: [What, is, the, capital, of, France, ?]. Each token maps to an integer ID — e.g. "France" → token ID 3003. This integer list is the only thing sent to the GPU. The CPU hands off to the GPU here.',
+    tokens: [true,true,true,true,true,true,true],
+    hl: [],
+    particles: []
+  },
+  {
+    label: 'Load weights',
+    badge: 'HBM', badgeColor: '#5A9ADA', badgeBg: 'rgba(90,154,218,0.12)',
+    title: 'Step 2 — Model weights are already in HBM',
+    text: 'The model (say, a 7B LLM at BF16) was loaded onto the GPU at startup — all 14 GB of weights sit in HBM. They never move during serving. Think of HBM as a giant warehouse: slow to move things out of, but everything is already there waiting. The GPU doesn\'t fetch weights from disk on every request.',
+    tokens: [],
+    hl: ['hbm'],
+    particles: []
+  },
+  {
+    label: 'HBM → Bus',
+    badge: 'MEMORY READ', badgeColor: '#C8B06A', badgeBg: 'rgba(200,176,100,0.12)',
+    title: 'Step 3 — Layer 1 weights stream out of HBM onto the interposer bus',
+    text: 'The GPU scheduler says "process these 7 tokens through layer 1." The memory controller reads layer 1\'s weight matrix — maybe 512 MB of numbers — from HBM at 3.35 TB/s. They travel in microseconds across the interposer bus (the dense wiring between HBM and die). This is the slowest hop in the whole chain, and why HBM bandwidth is the inference bottleneck.',
+    tokens: [],
+    hl: ['hbm','bus'],
+    particles: ['p1']
+  },
+  {
+    label: 'L2 cache',
+    badge: 'ON-DIE CACHE', badgeColor: '#8080D0', badgeBg: 'rgba(128,128,208,0.12)',
+    title: 'Step 4 — Weights land in the L2 cache (shared across all SMs)',
+    text: 'Data arriving from HBM first fills the L2 cache — a 50 MB pool shared by all 132 SMs on the die. If a weight is needed by multiple SMs at the same time, they all read from L2 rather than each triggering separate HBM fetches. For our 7-token prompt only SM 0 is busy, but in a real batch of 100 users the same weights are reused across dozens of SMs simultaneously.',
+    tokens: [],
+    hl: ['l2'],
+    particles: ['p2']
+  },
+  {
+    label: 'L1 / SRAM',
+    badge: 'PER-SM CACHE', badgeColor: '#5ABA8A', badgeBg: 'rgba(90,186,138,0.12)',
+    title: 'Step 5 — SM 0 pulls its slice into L1 SRAM',
+    text: 'SM 0 is assigned our 7 tokens. It fetches the weight tile it needs from L2 into its own L1 SRAM — a tiny (256 KB) but extremely fast scratchpad right on the SM. This is ~20× faster to read from than HBM. Flash Attention\'s insight was to tile the attention computation specifically so intermediate results fit in L1 SRAM, avoiding round-trips back to HBM for every attention score.',
+    tokens: [],
+    hl: ['l2','sram'],
+    particles: ['p3']
+  },
+  {
+    label: 'Tensor cores',
+    badge: 'COMPUTE', badgeColor: '#8AABFF', badgeBg: 'rgba(138,171,255,0.12)',
+    title: 'Step 6 — Tensor cores do the matrix multiply',
+    text: 'The 7-token embedding matrix (7 × 4096 floats) is multiplied against the layer\'s weight matrix (4096 × 4096) inside the Tensor cores. A Tensor core does this as a single fused operation in BF16/FP8, far faster than CUDA cores doing scalar multiply-adds. This repeats for every layer — attention QKV projections, the FFN — accumulating the forward pass. The KV cache for these 7 tokens is written back to HBM for use during decode.',
+    tokens: [],
+    hl: ['sram','tc'],
+    particles: ['p4']
+  },
+  {
+    label: 'Output',
+    badge: 'DECODE', badgeColor: '#5ABA5A', badgeBg: 'rgba(90,186,90,0.12)',
+    title: 'Step 7 — Logits → "Paris" is sampled and returned',
+    text: 'After the last layer, the result is a vector of 128,000 logits — one score per vocabulary token. A softmax turns these into probabilities. The highest-probability token here is "Paris" (ID 3772). That integer is detokenised back to text and streamed to you. Then the loop repeats: "Paris" is appended to the input and the whole HBM → bus → L2 → L1 → Tensor core path runs again to generate the next token.',
+    tokens: [false,false,false,false,false,false,false],
+    outWord: '"Paris" ✓',
+    hl: ['tc','out'],
+    particles: ['p5']
+  }
+];
+
+const tokenEls = [0,1,2,3,4,5,6].map(i => document.getElementById('t'+i));
+const hlIds = ['hbm','bus','l2','sram','tc','out'];
+const particleIds = ['p1','p2','p3','p4','p5'];
+let cur = -1;
+
+function setHighlights(active) {
+  hlIds.forEach(id => {
+    document.getElementById('hl-'+id).setAttribute('opacity', active.includes(id) ? '0.13' : '0');
+  });
+  const borders = {hbm:'hbm-rect',bus:'bus-rect',l2:'l2-rect',sram:'sram-rect',tc:'tc-rect',out:'out-rect'};
+  hlIds.forEach(id => {
+    const el = document.getElementById(borders[id]);
+    if (!el) return;
+    if (active.includes(id)) {
+      el.setAttribute('stroke-width', id === 'l2' ? '2.5' : '2');
+      if (id === 'hbm') el.setAttribute('stroke','#5A9ADA');
+      if (id === 'bus') el.setAttribute('stroke','#C8B06A');
+      if (id === 'l2') el.setAttribute('stroke','#8080D0');
+      if (id === 'sram') el.setAttribute('stroke','#5ABA8A');
+      if (id === 'tc') el.setAttribute('stroke','#8AABFF');
+      if (id === 'out') el.setAttribute('stroke','#5ABA5A');
+    } else {
+      el.setAttribute('stroke-width', id === 'l2' ? '1.5' : id === 'sm0-rect' ? '1.2' : '0.8');
+      if (id === 'hbm') el.setAttribute('stroke','#2E5A8A');
+      if (id === 'bus') el.setAttribute('stroke','#7A6A3A');
+      if (id === 'l2') el.setAttribute('stroke','#4A4A7A');
+      if (id === 'sram') el.setAttribute('stroke','#3A7A5A');
+      if (id === 'tc') el.setAttribute('stroke','#4A6AFF');
+      if (id === 'out') el.setAttribute('stroke','#3A7A3A');
+    }
+  });
+}
+
+function animateParticle(id, fromX, fromY, toX, toY) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.setAttribute('opacity','0');
+  el.setAttribute('cx', fromX); el.setAttribute('cy', fromY);
+  const dur = 600;
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / dur, 1);
+    const ease = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+    el.setAttribute('cx', fromX + (toX-fromX)*ease);
+    el.setAttribute('cy', fromY + (toY-fromY)*ease);
+    el.setAttribute('opacity', t < 0.1 ? t*10 : t > 0.85 ? (1-t)/0.15 : 1);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+const particleRoutes = {
+  p1: [60,140, 110,140],
+  p2: [145,140, 188,140],
+  p3: [268,56,  268,88],
+  p4: [242,104, 268,126],
+  p5: [380,137, 540,137]
+};
+
+function render(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+  cur = idx;
+  const s = steps[idx];
+
+  // tokens
+  tokenEls.forEach((el,i) => {
+    el.className = 'token';
+    if (s.tokens && s.tokens[i] === true) el.classList.add('active');
+    else if (s.tokens && s.tokens[i] === false) el.classList.add('done-t');
+  });
+
+  // highlights
+  setHighlights(s.hl || []);
+
+  // particles
+  particleIds.forEach(id => document.getElementById(id).setAttribute('opacity','0'));
+  (s.particles || []).forEach(id => {
+    const r = particleRoutes[id];
+    if (r) animateParticle(id, r[0], r[1], r[2], r[3]);
+  });
+
+  // output word
+  if (s.outWord) document.getElementById('out-word').textContent = s.outWord;
+  else document.getElementById('out-word').textContent = 'logits → token';
+
+  // info card
+  document.getElementById('ic-title').textContent = s.title;
+  document.getElementById('ic-text').textContent = s.text;
+  const badge = document.getElementById('ic-badge');
+  badge.textContent = s.badge;
+  badge.style.color = s.badgeColor;
+  badge.style.background = s.badgeBg;
+  badge.style.border = '1px solid '+s.badgeColor+'55';
+
+  // stepper
+  renderStepper();
+
+  // nav
+  document.getElementById('btn-prev').disabled = cur <= 0;
+  document.getElementById('btn-next').disabled = cur >= steps.length-1;
+  document.getElementById('step-ctr').textContent = (cur+1)+' / '+steps.length;
+}
+
+function go(dir) { render(cur + dir); }
+
+function reset() {
+  tokenEls.forEach(el => el.className = 'token');
+  setHighlights([]);
+  particleIds.forEach(id => document.getElementById(id).setAttribute('opacity','0'));
+  document.getElementById('out-word').textContent = 'logits → token';
+  document.getElementById('ic-title').textContent = 'Ready';
+  document.getElementById('ic-text').textContent = 'Press Next to walk through what happens when you send the prompt "What is the capital of France?" to a GPU running an LLM.';
+  const badge = document.getElementById('ic-badge');
+  badge.textContent = 'STEP 0 / 7';
+  badge.style.color = 'var(--text-muted)';
+  badge.style.background = 'var(--surface-0)';
+  badge.style.border = '1px solid var(--border)';
+  cur = -1;
+  document.getElementById('btn-prev').disabled = true;
+  document.getElementById('btn-next').disabled = false;
+  document.getElementById('step-ctr').textContent = '0 / '+steps.length;
+  renderStepper();
+}
+
+function renderStepper() {
+  const el = document.getElementById('stepper');
+  el.innerHTML = steps.map((s,i) => {
+    const state = i < cur ? 'done' : i === cur ? 'active' : '';
+    const num = i < cur ? '✓' : i+1;
+    return `<button class="step-btn ${state}" onclick="render(${i})">
+      <span class="step-num">${num}</span>
+      <span class="step-label">${s.label}</span>
+    </button>${i < steps.length-1 ? '<div class="step-divider"></div>' : ''}`;
+  }).join('');
+}
+
+renderStepper();
+</script>
